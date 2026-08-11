@@ -1,0 +1,2198 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Pokémon Null — Complete Code-Verified AI Reference</title>
+<meta name="description" content="Complete code-verified reference for the Pokémon Null battle AI: scoring functions, move-by-move logic, switch AI and doubles rules."/>
+<style>
+/* ============ TOKENS ============ */
+:root{
+  --sans: ui-sans-serif, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --mono: ui-monospace, "SF Mono", "JetBrains Mono", "IBM Plex Mono", Menlo, Consolas, monospace;
+  --r-sm:6px; --r-md:10px; --r-lg:16px;
+  --sidebar:300px;
+  --ease: cubic-bezier(.4,0,.2,1);
+}
+html[data-theme="dark"]{
+  --bg:#0d1117; --bg-2:#0f151d; --panel:#131a23; --panel-2:#182029;
+  --ink:#e4e9f0; --ink-2:#a7b2c1; --ink-3:#6e7c8f;
+  --border:#222c38; --border-2:#2c3846;
+  --accent:#ff6b5e; --accent-2:#ffa07a; --accent-soft:rgba(255,107,94,.13);
+  --pos-bg:rgba(46,196,120,.15); --pos-fg:#4ade8a; --pos-bd:rgba(46,196,120,.35);
+  --neg-bg:rgba(248,81,73,.15); --neg-fg:#ff8a80; --neg-bd:rgba(248,81,73,.35);
+  --zero-bg:rgba(139,155,175,.15); --zero-fg:#9aa8ba; --zero-bd:rgba(139,155,175,.3);
+  --code-bg:#1b2531; --code-fg:#c6d3e3;
+  --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px -8px rgba(0,0,0,.5);
+  --glow: radial-gradient(1200px 400px at 15% -10%, rgba(255,107,94,.10), transparent 70%);
+}
+html[data-theme="light"]{
+  --bg:#fbfaf8; --bg-2:#f5f3ef; --panel:#ffffff; --panel-2:#f7f5f1;
+  --ink:#1a1f28; --ink-2:#525b6a; --ink-3:#8a94a3;
+  --border:#e6e2da; --border-2:#d6d1c7;
+  --accent:#c0392b; --accent-2:#d9694f; --accent-soft:rgba(192,57,43,.08);
+  --pos-bg:#e4f5e9; --pos-fg:#14713a; --pos-bd:#b9e3c7;
+  --neg-bg:#fdeae7; --neg-fg:#b3261e; --neg-bd:#f5c6bf;
+  --zero-bg:#eceff2; --zero-fg:#4d5865; --zero-bd:#dbe0e6;
+  --code-bg:#f1eee8; --code-fg:#3d4653;
+  --shadow: 0 1px 2px rgba(30,25,20,.05), 0 8px 24px -10px rgba(30,25,20,.12);
+  --glow: radial-gradient(1200px 400px at 15% -10%, rgba(192,57,43,.06), transparent 70%);
+}
+*{box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{
+  margin:0; background:var(--bg); background-image:var(--glow); background-attachment:fixed;
+  color:var(--ink); font-family:var(--sans); font-size:15.5px; line-height:1.7;
+  -webkit-font-smoothing:antialiased; transition:background-color .25s var(--ease), color .25s var(--ease);
+}
+::selection{background:var(--accent-soft); color:var(--ink);}
+
+/* ============ READ PROGRESS ============ */
+#progress{position:fixed;top:0;left:0;height:2px;width:0;z-index:60;
+  background:linear-gradient(90deg,var(--accent),var(--accent-2));transition:width .1s linear;}
+
+/* ============ LAYOUT ============ */
+#layout{display:flex;max-width:1560px;margin:0 auto;min-height:100vh;}
+
+/* ============ SIDEBAR ============ */
+#sidebar{
+  width:var(--sidebar);flex-shrink:0;position:sticky;top:0;height:100vh;
+  display:flex;flex-direction:column;background:var(--panel);
+  border-right:1px solid var(--border);z-index:40;
+}
+.side-head{padding:22px 20px 14px;border-bottom:1px solid var(--border);}
+.brand{display:flex;align-items:center;gap:10px;margin-bottom:4px;}
+.brand-dot{width:9px;height:9px;border-radius:50%;background:var(--accent);
+  box-shadow:0 0 0 4px var(--accent-soft);flex-shrink:0;}
+.brand-name{font-family:var(--mono);font-size:14px;font-weight:700;letter-spacing:-.2px;}
+.brand-sub{font-size:11px;color:var(--ink-3);letter-spacing:.3px;padding-left:19px;}
+.search-wrap{position:relative;margin-top:14px;}
+#search{
+  width:100%;padding:9px 30px 9px 32px;font-family:var(--sans);font-size:13px;
+  background:var(--bg-2);color:var(--ink);border:1px solid var(--border);
+  border-radius:var(--r-md);outline:none;transition:border-color .15s,box-shadow .15s;
+}
+#search:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft);}
+#search::placeholder{color:var(--ink-3);}
+.search-ico{position:absolute;left:10px;top:50%;transform:translateY(-50%);
+  width:14px;height:14px;color:var(--ink-3);pointer-events:none;}
+.search-kbd{position:absolute;right:9px;top:50%;transform:translateY(-50%);
+  font-family:var(--mono);font-size:10px;color:var(--ink-3);border:1px solid var(--border-2);
+  border-radius:4px;padding:1px 5px;pointer-events:none;}
+#search:focus ~ .search-kbd{opacity:0;}
+#toc{flex:1;overflow-y:auto;padding:12px 12px 40px;scrollbar-width:thin;}
+#toc::-webkit-scrollbar{width:8px;}
+#toc::-webkit-scrollbar-thumb{background:var(--border-2);border-radius:4px;}
+#toc a{
+  display:block;padding:5px 10px;margin:1px 0;color:var(--ink-2);text-decoration:none;
+  font-size:12.5px;line-height:1.4;border-radius:var(--r-sm);position:relative;
+  transition:background .12s,color .12s;
+}
+#toc a.major{
+  font-family:var(--mono);font-weight:700;font-size:11.5px;letter-spacing:.4px;
+  text-transform:uppercase;color:var(--ink);margin-top:14px;
+}
+#toc a.minor{padding-left:22px;font-size:12.5px;}
+#toc a:hover{background:var(--panel-2);color:var(--ink);}
+#toc a.active{background:var(--accent-soft);color:var(--accent);font-weight:600;}
+#toc a.active::before{content:"";position:absolute;left:2px;top:50%;transform:translateY(-50%);
+  width:3px;height:60%;background:var(--accent);border-radius:2px;}
+#toc a mark{background:var(--accent-soft);color:var(--accent);border-radius:3px;padding:0 1px;}
+.no-results{padding:24px 12px;text-align:center;color:var(--ink-3);font-size:12.5px;display:none;}
+.side-foot{padding:10px 16px;border-top:1px solid var(--border);display:flex;
+  align-items:center;justify-content:space-between;gap:8px;}
+.count{font-family:var(--mono);font-size:10.5px;color:var(--ink-3);}
+
+/* ============ BUTTONS ============ */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:6px;
+  background:var(--panel-2);color:var(--ink-2);border:1px solid var(--border);
+  border-radius:var(--r-sm);padding:6px 9px;cursor:pointer;font-family:var(--sans);
+  font-size:12px;transition:all .15s var(--ease);
+}
+.btn:hover{color:var(--accent);border-color:var(--accent);background:var(--accent-soft);}
+.btn svg{width:14px;height:14px;}
+html[data-theme="dark"] .ico-sun{display:block;} html[data-theme="dark"] .ico-moon{display:none;}
+html[data-theme="light"] .ico-sun{display:none;} html[data-theme="light"] .ico-moon{display:block;}
+
+/* ============ CONTENT ============ */
+#main{flex:1;min-width:0;display:flex;flex-direction:column;}
+#topbar{
+  position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:12px;
+  padding:12px 32px;border-bottom:1px solid var(--border);
+  background:color-mix(in srgb, var(--bg) 92%, transparent);
+  backdrop-filter:saturate(160%) blur(12px);-webkit-backdrop-filter:saturate(160%) blur(12px);
+}
+#menu-btn{display:none;}
+.crumb{font-family:var(--mono);font-size:12px;color:var(--ink-3);flex:1;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.crumb b{color:var(--ink-2);font-weight:600;}
+#content{padding:0 32px 140px;max-width:900px;width:100%;}
+
+/* hero */
+.hero{padding:56px 0 34px;border-bottom:1px solid var(--border);margin-bottom:8px;}
+.eyebrow{display:inline-flex;align-items:center;gap:7px;font-family:var(--mono);font-size:10.5px;
+  letter-spacing:1.4px;text-transform:uppercase;color:var(--accent);background:var(--accent-soft);
+  border:1px solid var(--accent-soft);padding:4px 10px;border-radius:100px;margin-bottom:18px;}
+.hero h1{
+  font-family:var(--mono);font-size:clamp(26px,3.6vw,38px);line-height:1.15;margin:0 0 14px;
+  font-weight:700;letter-spacing:-1px;
+  background:linear-gradient(135deg,var(--ink) 30%,var(--accent));
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.hero p{color:var(--ink-2);font-size:15px;margin:0;max-width:62ch;}
+.stats{display:flex;flex-wrap:wrap;gap:10px;margin-top:26px;}
+.stat{background:var(--panel);border:1px solid var(--border);border-radius:var(--r-md);
+  padding:10px 16px;box-shadow:var(--shadow);}
+.stat b{display:block;font-family:var(--mono);font-size:18px;color:var(--accent);line-height:1.2;}
+.stat span{font-size:11px;color:var(--ink-3);letter-spacing:.4px;text-transform:uppercase;}
+
+/* headings */
+#content h2{
+  font-family:var(--mono);font-size:17px;font-weight:700;letter-spacing:-.2px;
+  margin:52px 0 18px;padding:13px 18px;border-radius:var(--r-md);
+  background:linear-gradient(90deg,var(--accent-soft),transparent 85%);
+  border:1px solid var(--border);border-left:3px solid var(--accent);
+  scroll-margin-top:70px;position:relative;
+}
+#content h3{
+  font-family:var(--mono);font-size:14.5px;font-weight:700;color:var(--accent);
+  margin:32px 0 10px;padding-bottom:7px;border-bottom:1px dashed var(--border-2);
+  scroll-margin-top:70px;position:relative;
+}
+.anchor{
+  position:absolute;left:-26px;top:50%;transform:translateY(-50%);
+  opacity:0;background:none;border:none;cursor:pointer;color:var(--ink-3);
+  padding:4px;line-height:0;border-radius:var(--r-sm);transition:opacity .15s,color .15s;
+}
+#content h3 .anchor{top:calc(50% - 4px);}
+h2:hover .anchor, h3:hover .anchor, .anchor:focus{opacity:1;}
+.anchor:hover{color:var(--accent);background:var(--accent-soft);}
+.anchor svg{width:15px;height:15px;}
+
+/* prose */
+#content p{margin:12px 0;color:var(--ink);}
+#content ul,#content ol{margin:10px 0;padding-left:24px;}
+#content li{margin:6px 0;}
+#content li::marker{color:var(--accent);}
+#content li ul{margin-top:6px;}
+#content li ul li::marker{color:var(--ink-3);}
+#content strong{font-weight:650;color:var(--ink);}
+#content code{
+  font-family:var(--mono);font-size:12.8px;background:var(--code-bg);color:var(--code-fg);
+  padding:2px 6px;border-radius:5px;border:1px solid var(--border);white-space:pre-wrap;
+}
+#content hr{border:none;border-top:1px solid var(--border);margin:36px 0;}
+
+/* score chips */
+.sc-pos,.sc-neg,.sc-zero{
+  display:inline-block;font-family:var(--mono);font-weight:700;font-size:12.5px;
+  padding:1px 8px;border-radius:100px;border:1px solid;font-variant-numeric:tabular-nums;
+  white-space:nowrap;vertical-align:baseline;
+}
+.sc-pos{background:var(--pos-bg);color:var(--pos-fg);border-color:var(--pos-bd);}
+.sc-neg{background:var(--neg-bg);color:var(--neg-fg);border-color:var(--neg-bd);}
+.sc-zero{background:var(--zero-bg);color:var(--zero-fg);border-color:var(--zero-bd);}
+
+/* toast */
+#toast{
+  position:fixed;bottom:26px;left:50%;transform:translate(-50%,16px);opacity:0;pointer-events:none;
+  background:var(--panel);color:var(--ink);border:1px solid var(--border);box-shadow:var(--shadow);
+  padding:9px 16px;border-radius:100px;font-size:13px;z-index:70;transition:all .22s var(--ease);
+}
+#toast.show{opacity:1;transform:translate(-50%,0);}
+
+/* back to top */
+#totop{position:fixed;right:24px;bottom:24px;z-index:50;width:38px;height:38px;padding:0;
+  border-radius:50%;box-shadow:var(--shadow);background:var(--panel);opacity:0;
+  pointer-events:none;transition:opacity .2s,transform .2s;}
+#totop.show{opacity:1;pointer-events:auto;}
+#totop:hover{transform:translateY(-2px);}
+
+#scrim{display:none;}
+
+/* ============ RESPONSIVE ============ */
+@media (max-width:960px){
+  #menu-btn{display:inline-flex;}
+  #sidebar{position:fixed;left:0;top:0;height:100vh;transform:translateX(-100%);
+    transition:transform .28s var(--ease);box-shadow:var(--shadow);width:min(88vw,320px);}
+  #sidebar.open{transform:translateX(0);}
+  #scrim{display:block;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:35;
+    opacity:0;pointer-events:none;transition:opacity .25s;}
+  #scrim.show{opacity:1;pointer-events:auto;}
+  #topbar{padding:10px 18px;}
+  #content{padding:0 18px 110px;}
+  .hero{padding:36px 0 26px;}
+  .anchor{left:auto;right:8px;transform:none;top:50%;margin-top:-11px;opacity:.45;}
+  #content h3 .anchor{top:2px;margin-top:0;}
+}
+@media print{
+  #sidebar,#topbar,#totop,#progress,.anchor,#toast{display:none!important;}
+  #content{max-width:100%;padding:0;}
+  body{background:#fff;}
+}
+
+</style>
+</head>
+<body>
+<div id="progress"></div>
+
+<div id="layout">
+  <nav id="sidebar" aria-label="Table of contents">
+    <div class="side-head">
+      <div class="brand">
+        <span class="brand-dot"></span>
+        <span class="brand-name">Pok&eacute;mon Null</span>
+      </div>
+      <div class="brand-sub">Code-Verified AI Reference</div>
+      <div class="search-wrap">
+        <svg class="search-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <input id="search" type="search" placeholder="Search sections&hellip;" autocomplete="off" spellcheck="false" aria-label="Search sections"/>
+        <span class="search-kbd">/</span>
+      </div>
+    </div>
+    <div id="toc"></div>
+    <div class="side-foot">
+      <span class="count" id="c-total"></span>
+      <button class="btn" id="theme-btn" type="button" title="Toggle theme" aria-label="Toggle light and dark theme"><svg class="ico-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg><svg class="ico-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 13.2A9 9 0 1 1 10.8 3a7 7 0 0 0 10.2 10.2Z"/></svg></button>
+    </div>
+  </nav>
+  <div id="scrim"></div>
+
+  <div id="main">
+    <div id="topbar">
+      <button class="btn" id="menu-btn" type="button" aria-label="Open contents"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg></button>
+      <div class="crumb" id="crumb"><b>Overview</b></div>
+    </div>
+
+    <div id="content">
+      <div class="hero">
+        <span class="eyebrow">Code-Verified &middot; Battle AI</span>
+        <h1>Pok&eacute;mon Null AI Reference</h1>
+        <p>Every scoring function, move-by-move branch, and switch decision the battle AI runs &mdash; read straight from the source and organized for lookup mid-fight.</p>
+        <div class="stats">
+          <div class="stat"><b id="n-major">0</b><span>Sections</span></div>
+          <div class="stat"><b id="n-minor">0</b><span>Entries</span></div>
+          <div class="stat"><b>334</b><span>Scores</span></div>
+        </div>
+      </div>
+<h2 id="general-facts">General Facts</h2>
+<ul>
+<li>The AI has full knowledge of your team’s stats, moves, items, and
+abilities from the start of the fight.</li>
+<li>Non-attacking moves default to <span class="sc-pos">+6</span> Score
+(tied with HDM). Exceptions: Nature Power, Memento.</li>
+<li>Most guaranteed-secondary-effect moves with accuracy above 70 also
+default to +6 and follow their corresponding status move’s AI — unless
+already functioning as the HDM.</li>
+<li>Future Sight also starts with a default <span class="sc-pos">+6</span> Score, but only if no Future Sight/Doom Desire
+is already queued on either side — otherwise -20.</li>
+<li>AI usually sees 3 hits for multi-hit moves. Loaded Dice raises this
+to 4 hits seen; Skill Link to 5.</li>
+<li>AI calculates both Pokémon’s Speed stats to predict
+Analytic/Payback. Does not apply to Avalanche.</li>
+<li>AI does NOT understand the Player’s priority moves — it only reasons
+using dynamic Speed stats.</li>
+<li>Phazing moves: Roar, Whirlwind, Dragon Tail, Circle Throw.</li>
+<li>Pokémon that haven’t transformed yet (Wishiwashi, Minior, Castform)
+are seen by the AI in base form. Castform’s Weather Ball is seen at 1.5x
+to simulate future STAB.</li>
+<li>Every scoring function runs in a fixed order (AI_CheckBadMove →
+AI_TryToFaint → AI_CheckViability → AI_SetupFirstTurn → AI_Risky →
+AI_PreferStrongestMove → AI_PreferBatonPass → AI_DoubleBattle →
+AI_HPAware), gated by which flags a trainer/wild mon has enabled. Three
+additional flag slots (Negate Unaware, Will Suicide, Help Partner) are
+DEFINED as named constants but have no function attached in this build —
+reserved/unimplemented. AI_CheckBadMove’s final result is floored at 0 —
+it can never make a move go negative on its own, only remove its
+appeal.</li>
+</ul>
+<p>Critical pipeline mechanic: once any move’s running score hits 0 or
+below at ANY point in this chain, the AI stops running further scoring
+functions on that move entirely for the rest of the turn — a move zeroed
+out by AI_CheckBadMove never gets a chance to recover via AI_Risky or
+AI_PreferStrongestMove later, even if those would otherwise like it. All
+4 move slots always start at exactly 100 (not 0) when a real choice is
+being computed. Moves with 0 PP, or disabled/taunted/otherwise illegal,
+are force-zeroed before any scoring function runs at all. In Doubles, a
+move that literally cannot target a given battler (CanTargetBattler
+check) is skipped for that target entirely, not merely scored low.</p>
+<p>Difficulty/flag assignment also has a config-variable hook: wild
+Pokémon can have additional AI flags injected via a build-time variable
+(B_VAR_WILD_AI_FLAGS) on top of the level-based thresholds below.</p>
+<h2 id="support-pokmon-definition">Support Pokémon Definition</h2>
+<p>A Pokémon is classified as Support if:</p>
+<ul>
+<li>It has at most one damaging move.</li>
+<li>It has no moves with base power &gt; 75.</li>
+<li>Pokémon with Imposter are excluded.</li>
+<li>Moves that don’t count toward the damaging-move total: Fake Out,
+Feint, Upper Hand, Endeavor, Super Fang, Dragon Tail, Circle Throw,
+Knock Off, Foul Play, Future Sight, Bug Bite, Pollen Puff, speed-control
+damage moves (Rock Tomb, Glaciate), and Surf/Dive (Cramorant only).</li>
+<li>Feeds into Post-KO switch scoring (+2, 10% chance) and its own
+Mid-Turn Switch trigger — the doc’s own words: “The support class plays
+a notable role in some Switch decisions.”</li>
+</ul>
+<p>Worked example, to make the definition concrete: a Pokémon carrying
+Knock Off, Fake Out, Toxic, and Protect still classifies as Support —
+neither Knock Off nor Fake Out count toward the damaging-move limit, and
+Toxic/Protect deal no direct damage at all, so its real damaging-move
+count is 0. The same Pokémon with a 90-base-power move added instead of
+Protect would NOT qualify — that single move breaks the “no move over 75
+power” rule outright, regardless of how few damaging moves it has
+overall.</p>
+<p>Why this classification likely exists (reasoned from the pattern
+below, not stated outright in the source): a Support-classified Pokémon
+is, by definition, one that isn’t built to threaten real damage — its
+value is in what it sets up (hazards, screens, status, utility) rather
+than what it hits for. Both places this label actually changes AI
+behavior point the same direction: it becomes MORE likely to switch out
+once it’s in Singles and has been in for more than a turn (the Mid-Turn
+“Support AI” trigger), and it gets a small bonus to being sent back in
+specifically when it ISN’T about to just get OHKO’d (the Post-KO +2
+bonus, gated behind not already being at -1). Read together, that reads
+as the AI treating Support Pokémon as more disposable/rotational than
+attackers or walls — worth bringing in when the coast is relatively
+clear to do its job, and worth pulling back out again once that job is
+done or the field gets dangerous, rather than parking it in like a wall
+would be. This paragraph is inference from the two mechanics, not a
+claim the source document makes explicitly.</p>
+<h2 id="common-scores-to-be-aware-of">Common Scores To Be Aware Of</h2>
+<ul>
+<li>Highest damaging move (HDM): <span class="sc-pos">+6</span> (75%),
+<span class="sc-pos">+8</span> (25%)</li>
+<li>Slow kill (AI kills but is slower than target): <span class="sc-pos">+9</span> (75%), <span class="sc-pos">+11</span>
+(25%)</li>
+<li>Fast kill (AI kills and is faster* than target): <span class="sc-pos">+12</span> (75%), <span class="sc-pos">+14</span>
+(25%)</li>
+</ul>
+<p>*Speed ties count as faster; priority kills always count as fast.
+These totals are literally the +6/+3 kill bonus stacked on the +6/+8 HDM
+bonus, since a killing move is almost always the HDM too.</p>
+<h2 id="damaging-moves">Damaging Moves</h2>
+<p>Never rolled/considered HDM: Explosion, Self-Destruct, Misty
+Explosion, Final Gambit, Meteor Beam, Future Sight, OHKO moves, Feint,
+Upper Hand.</p>
+<p>If a damaging move kills:</p>
+<ul>
+<li>AI faster, or priority while AI slower: <span class="sc-pos">+6</span> Score</li>
+<li>AI slower: <span class="sc-pos">+3</span> Score</li>
+<li>No kill bonus for: Explosion, Self-Destruct, Misty Explosion, Final
+Gambit, Rollout, Ice Ball, OHKO moves</li>
+<li>Kill bonus despite never being HDM: Meteor Beam, Future Sight</li>
+<li>AI has Moxie, Beast Boost, Chilling Neigh, Grim Neigh, As One (Ice
+or Shadow Rider), and is faster with a confirmed kill: <span class="sc-pos">+1</span> Score</li>
+</ul>
+<p>Damaging priority moves (Feint excluded):</p>
+<ul>
+<li>AI slower, Player can faint AI, not Mimikyu-Disguise-protected:
+<ul>
+<li>Priority move is also HDM: <span class="sc-pos">+5</span> Score</li>
+<li>Else: <span class="sc-pos">+11</span> Score</li>
+</ul></li>
+<li>Else if AI slower and holds Eject Button, same conditions: <span class="sc-pos">+11</span> Score</li>
+</ul>
+<p>Moves that thaw the user: AI frozen/frostbitten: <span class="sc-pos">+12</span> Score</p>
+<p>Choice AI: holding a Choice item blocks all status moves (<span class="sc-neg">-20</span> Score) except Memento, Parting Shot, Baton
+Pass, Teleport, Chilly Reception, Sleep Talk, Me First, Copycat, Mimic,
+Transform, Sketch, Nature Power, Assist, Metronome.</p>
+<p>Priority Moves - Weakness Policy: priority move can activate it:
+<span class="sc-pos">+12</span> Score (25%), <span class="sc-pos">+8</span> Score (75%)</p>
+<p>Recursive-evaluation moves: Me First, Copycat, Mirror Move, Nature
+Power, and Mimic don’t have their own scoring — they look up the move
+they’d actually copy/call and run that move’s own full
+AI_CheckBadMove/AI_CheckViability logic recursively. Banned-move lists
+prevent copying certain moves (checked via per-move flags, not detailed
+further here).</p>
+<h2 id="ability-field-amp-weather-immunity-layer">Ability, Field &amp;
+Weather Immunity Layer</h2>
+<p>These block or heavily discourage a move regardless of what it is,
+before move-specific logic runs.</p>
+<p>Hard blocks (move can’t even be selected, returns 0 outright):</p>
+<ul>
+<li>Target has Wonder Guard and the move isn’t super effective</li>
+<li>Sound move while Throat Chop is active on the user</li>
+<li>Heal-blocked move while under Heal Block</li>
+<li>Target is “commanding” (Dondozo/Tatsugiri mechanic)</li>
+<li>EFFECT_PLACEHOLDER moves (unfinished/reserved effects)</li>
+</ul>
+<p>Target ability blocks, <span class="sc-neg">-20</span> Score (full
+penalty when the move’s actual target has the ability):</p>
+<ul>
+<li>Good As Gold: blocks any status move outright</li>
+<li>Dazzling / Queenly Majesty: blocks the user’s priority moves against
+the field</li>
+<li>Aroma Veil: blocks mind-affecting moves</li>
+<li>Sweet Veil: blocks Sleep/Yawn</li>
+<li>Flower Veil: blocks status and stat-lowering on Grass-types</li>
+<li>Magic Bounce: blocks Magic-Coat-affected moves</li>
+<li>Contrary: blocks stat-lowering moves aimed at it</li>
+<li>Clear Body / White Smoke / Full Metal Body: blocks stat-lowering and
+Parting Shot</li>
+<li>Hyper Cutter: blocks Attack-lowering (except Play Nice, Noble Roar,
+Tearful Look, Venom Drench)</li>
+<li>Keen Eye / Mind’s Eye: blocks Accuracy-lowering</li>
+<li>Big Pecks: blocks Defense-lowering</li>
+<li>Defiant / Competitive: blocks stat-lowering (unless targeting own
+partner)</li>
+<li>Comatose: blocks non-volatile status</li>
+<li>Shields Down (in shield form): blocks non-volatile status</li>
+<li>Leaf Guard (in Sun, no Utility Umbrella): blocks non-volatile
+status</li>
+</ul>
+<p>Partner ability blocks in Doubles, at HALF penalty (<span class="sc-neg">-10</span> Score) since it’s a secondary
+consideration:</p>
+<ul>
+<li>Lightning Rod (Electric redirect), Storm Drain (Water redirect),
+Magic Bounce, Sweet Veil (also blocks Dark Void), Flower Veil, Aroma
+Veil, Dazzling/Queenly Majesty</li>
+</ul>
+<p>Gen 7+ Prankster vs. Dark-type: status move blocked, <span class="sc-neg">-10</span> Score</p>
+<p>Terrain blocks, <span class="sc-neg">-20</span> Score: Electric
+Terrain blocks Sleep/Yawn on grounded targets; Misty Terrain blocks
+non-volatile status and confusion; Psychic Terrain blocks the ATTACKER’S
+OWN priority moves.</p>
+<p>Primal Weather blocks, <span class="sc-neg">-20</span> Score: can’t
+set any of the four basic weathers under a Primal weather;
+non-Hydro-Steam Water moves blocked under Primal Sun; Fire moves blocked
+under Primal Rain.</p>
+<p>Magic Guard interactions: Poison/Burn/Toxic/Leech Seed against a
+Magic Guard target: <span class="sc-neg">-5</span> Score. Curse
+specifically, if the user is Ghost-type and the target has Magic Guard:
+<span class="sc-neg">-5</span> Score (no chip damage will land).</p>
+<ul>
+<li>Powder moves against a target immune to powder: <span class="sc-neg">-10</span> Score.</li>
+<li>Semi-invulnerable target (Fly/Dig etc.) and the AI is faster: <span class="sc-neg">-20</span> Score (target will dodge anyway).</li>
+</ul>
+<h2 id="setup-moves">SETUP MOVES</h2>
+<p>Every stat-raising move shares this base pattern (unless noted
+otherwise): can’t-rise check (-20), “will I die before benefiting” check
+(-20, exempted by Sash/Sturdy/Mimikyu Disguise/Substitute), and “will
+this just get erased” check (-20 if target has Unaware, Haze, Freezy
+Frost, Topsy Turvy, or Clear Smog — often also if target has Roar/a
+phazing hit-switch move and the AI still has usable party mons).</p>
+<h3 id="offensive-setup-viability-layer">Offensive Setup (viability
+layer)</h3>
+<p>Tidy Up, Dragon Dance, Shift Gear, Attack Up (and variants), Growth,
+Work Up (Attack/SpAtk line)</p>
+<ul>
+<li>Player incapacitated: <span class="sc-pos">+3</span> Score
+(90%)</li>
+<li>Else if Player kills AI in 4+ hits: <span class="sc-pos">+1</span>
+Score (Player faster) / <span class="sc-pos">+2</span> Score (Player
+slower)</li>
+<li>Boosted stat already +2 or higher: <span class="sc-neg">-1</span>
+Score (80%)</li>
+<li>Tidy Up specifically: if own side has hazards up and party isn’t
+empty, <span class="sc-pos">+2</span> Score flat instead (prioritizes
+the hazard-clearing side-effect)</li>
+</ul>
+<h3 id="defensive-setup-viability-layer">Defensive Setup (viability
+layer)</h3>
+<p>Defense Up (and variants), Special Defense Up, Cosmic Power, Cotton
+Guard, etc.</p>
+<ul>
+<li>80% of the time: Player incapacitated <span class="sc-pos">+2</span>
+Score (90%); Defense boost with Player having only physical moves <span class="sc-pos">+1</span> Score (mirrored for Special Defense); stat
+already +2+ without Body Press <span class="sc-pos">+1</span> Score:
+<span class="sc-neg">-1</span> Score</li>
+</ul>
+<h3 id="mixed-setup">Mixed Setup</h3>
+<p>No Retreat, Victory Dance, Coil, Bulk Up, Curse, Contrary
+Superpower/Make It Rain/Overheat, Calm Mind, Quiver Dance</p>
+<ul>
+<li>Classified Offensive or Defensive based on the PLAYER’s actual
+moveset split, mirrored for special vs. physical.</li>
+<li>Curse used by a Ghost-type doesn’t follow setup rules at all — stays
+default +6 if target isn’t already cursed; HP≤50% blocks it (-20 in
+CheckBadMove).</li>
+<li>Contrary Superpower/Overheat/Make It Rain: routes through
+ShouldSetupOthers/ShouldSetupOffensive specifically when Contrary flips
+the move into a buff instead of a debuff.</li>
+</ul>
+<h3 id="speed-setup">Speed Setup</h3>
+<p>Autotomize, Agility, Rock Polish, Trailblaze, Flame Charge, Aqua
+Step, Esper Wing, Scale Shot</p>
+<ul>
+<li>AI already faster: <span class="sc-neg">-20</span> Score
+(CheckBadMove)</li>
+<li>AI slower: <span class="sc-pos">+1</span> Score (80%)</li>
+<li>Also blocked if target has Roar/phazing and AI has usable party mons
+(fears being phased before benefiting)</li>
+</ul>
+<h3 id="rapid-spin">Rapid Spin</h3>
+<p>Treated as Speed Setup, plus:</p>
+<ul>
+<li>Best-damage-move / Wrapped / Leech-Seeded: bypasses the speed-setup
+gate entirely (still scores on damage)</li>
+<li>No hazards on AI’s own side: standard speed-setup logic applies</li>
+<li>Viability: AI slower, <span class="sc-pos">+7</span> Score (80%);
+Leech-Seeded or Wrapped: <span class="sc-pos">+1</span> Score; own-side
+hazards present: <span class="sc-pos">+2</span> Score (50%) (shared code
+path with Defog)</li>
+</ul>
+<h3 id="evasion-setup">Evasion Setup</h3>
+<p>Double Team, Minimize</p>
+<ul>
+<li>Blocked by Unaware/Haze-family or phazing-fear the same as Speed
+Setup</li>
+<li>AI HP &gt; 90%: <span class="sc-pos">+1</span> Score (80%); else if
+AI HP &gt; 60%: <span class="sc-pos">+1</span> Score (60%)</li>
+</ul>
+<h3 id="geomancy">Geomancy</h3>
+<ul>
+<li>Requires literally holding Power Herb, or -20</li>
+<li>Immediately-usable: <span class="sc-pos">+9</span> Score (80%) in
+CheckViability, <span class="sc-pos">+3</span> Score (25%) as a separate
+bonus in the general stat-setup block</li>
+<li>Standard setup death/negation checks apply, plus phazing-fear
+check</li>
+</ul>
+<h3 id="shell-smash-belly-drum-fillet-away-clangorous-soul">Shell Smash,
+Belly Drum, Fillet Away, Clangorous Soul</h3>
+<ul>
+<li>Shell Smash specifically: Contrary flips it to raise Def/SpDef
+instead of Atk/SpAtk; stat stages ≤5 still required even under
+Contrary</li>
+<li>Belly Drum/Fillet Away: blocked by Contrary entirely, HP≤50%, or
+Attack already &gt;+6</li>
+<li>Viability: target incapacitated <span class="sc-pos">+3</span> Score
+(90%); can’t-be-KO’d-after-setup <span class="sc-pos">+2</span> Score;
+would-be-KO’d-after <span class="sc-neg">-2</span> Score (accounts for
+berries)</li>
+</ul>
+<h3 id="acupressure">Acupressure</h3>
+<ul>
+<li>Blocked if Substitute blocks it or stats already maxed</li>
+<li>Standard death-check and phazing-fear checks</li>
+<li>Viability: target incapacitated <span class="sc-pos">+3</span> Score
+(90%); target needs 4+ hits to kill AI: <span class="sc-pos">+1</span>
+Score, plus +1 more if AI is faster</li>
+</ul>
+<h3 id="charge">Charge</h3>
+<ul>
+<li>Blocked if already charged up, or if target has Roar/phazing
+(bypasses the SpDef-can’t-rise check entirely in that case)</li>
+<li>Otherwise needs Sp. Def room like a normal setup move</li>
+<li>Viability: target has an Electric move: <span class="sc-pos">+1</span> Score (50%)</li>
+</ul>
+<h3 id="defense-curl">Defense Curl</h3>
+<p>Additional to Defensive Setup: has Rollout/Ice Ball and hasn’t used
+Defense Curl yet: <span class="sc-pos">+1</span> Score (both in the
+bad-move layer and again as +1 in viability)</p>
+<h3 id="stockpile">Stockpile</h3>
+<ul>
+<li>Blocked at 3+ stacks</li>
+<li>Contrary blocks it entirely in viability</li>
+<li>Has Swallow or Spit Up: <span class="sc-pos">+1</span> Score</li>
+</ul>
+<h3 id="spit-up">Spit Up</h3>
+<ul>
+<li>Blocked below 2 stacks (needs ≥2 to be worth using in CheckBadMove’s
+≤1 gate)</li>
+<li>Viability: stacks ≥2: <span class="sc-pos">+1</span> Score</li>
+</ul>
+<h3 id="swallow">Swallow</h3>
+<ul>
+<li>Blocked at 0 stacks; blocked at max HP; discouraged (-5) at ≥80% HP
+as a last resort</li>
+<li>Heals 25/50/100% depending on 1/2/3 stacks, scored through
+ShouldRecover: <span class="sc-pos">+2</span> Score if worthwhile</li>
+</ul>
+<h3 id="order-up-commandertatsugiri-mechanic">Order Up
+(Commander/Tatsugiri mechanic)</h3>
+<ul>
+<li>Curly commanding: routed through Offensive Setup (Attack)
+scoring</li>
+<li>Droopy commanding: routed through Defensive Setup (Defense)
+scoring</li>
+<li>Stretchy commanding: its own inline block — AI slower: <span class="sc-pos">+6</span> Score, plus <span class="sc-pos">+1</span>
+Score (80%); AI faster: <span class="sc-neg">-1</span> Score</li>
+</ul>
+<h3 id="rototiller">Rototiller</h3>
+<ul>
+<li>Requires the user (or, in Doubles, its grounded Grass-type partner
+with room to grow Atk/SpAtk) to actually benefit, or -20</li>
+</ul>
+<h3 id="gear-up">Gear Up</h3>
+<ul>
+<li>Only useful with Plus/Minus ability; -10/-8 penalties (self) or
+-20/-10 (Doubles partner-based) if the relevant stat/move-split combo
+won’t actually benefit</li>
+</ul>
+<h3 id="magnetic-flux">Magnetic Flux</h3>
+<ul>
+<li>Same Plus/Minus mechanic as Gear Up, but for Defense/Sp. Defense;
+self penalties -20 each stat, partner-based -10/-8</li>
+</ul>
+<h2 id="status-inflicting-moves">STATUS-INFLICTING MOVES</h2>
+<h3 id="sleep-sing-dark-void-yawn">Sleep (Sing, Dark Void, Yawn)</h3>
+<ul>
+<li>Fully blocked (-20) via AI_CanPutToSleep if the target can’t be put
+to sleep at all</li>
+<li>Yawn additionally blocked if the target is already yawned</li>
+<li>25% chance, if AI doesn’t see a kill: target can sleep <span class="sc-pos">+1</span> Score; target has Dream
+Eater/Nightmare/Snore/Sleep Talk <span class="sc-pos">+1</span> Score;
+target or partner has Hex/Infernal Parade <span class="sc-pos">+1</span>
+Score</li>
+<li>Dark Void specifically, Doubles only: <span class="sc-pos">+2</span>
+Score (~80%), stacks with (falls through into) the standard Sleep
+scoring above</li>
+</ul>
+<h3 id="poison-poison-gas-toxic-toxic-threads-fallback">Poison (Poison
+Gas, Toxic, Toxic Thread’s fallback)</h3>
+<ul>
+<li>Blocked via AI_CanPoison</li>
+<li>~37.5% chance, if no kill seen and target HP &gt;20%: no damaging
+moves +1; AI has Protect +1; AI has Venoshock/Hex/Infernal Parade/Venom
+Drench/Merciless +1</li>
+<li>Toxic Thread specifically: if lowering Speed isn’t worthwhile, takes
+a -1 first (still might poison); if AI is faster, <span class="sc-pos">+1</span> Score bonus (50%) on top of standard poison
+scoring</li>
+</ul>
+<h3 id="paralysis-nuzzle-thunder-wave-glare">Paralysis (Nuzzle, Thunder
+Wave, Glare)</h3>
+<ul>
+<li>Blocked via AI_CanParalyze</li>
+<li>If no kill seen: AI slower-before/faster-after paralysis +2; else
+Hex/Infernal Parade/flinch moves +2; else Player confused/infatuated +2;
+else flat +1</li>
+<li>On-hit variant (Nuzzle-style): Zap Cannon explicitly excluded from
+the on-hit bonus; Covert Cloak/Shield Dust block it; <span class="sc-pos">+6</span> Score if it can land, PLUS the standalone
+paralyze scoring above, MINUS a further 50% chance of -1</li>
+</ul>
+<h3 id="burn-frostbite-will-o-wisp-freezy-frost-sizzly-slide">Burn,
+Frostbite (Will-O-Wisp, Freezy Frost, Sizzly Slide)</h3>
+<ul>
+<li>Blocked via AI_CanBurn / AI_CanGiveFrostbite</li>
+<li>~37.5% chance (96/256), if no kill seen: <span class="sc-pos">+1</span> Score; Player has physical moves (special for
+Frostbite) +1; else AI/partner has Hex/Infernal Parade +1</li>
+<li>On-hit Burn variant: Burning Jealousy explicitly excluded; Covert
+Cloak/Shield Dust block it; <span class="sc-pos">+6</span> Score if
+lands, falls through into standard burn scoring</li>
+</ul>
+<h3 id="confusion-confuse-ray-supersonic-swagger-flatter">Confusion
+(Confuse Ray, Supersonic, Swagger, Flatter)</h3>
+<ul>
+<li>Blocked via AI_CanConfuse</li>
+<li>25% chance, if no kill seen: target can be confused +1; Player
+paralyzed/infatuated, or AI has Serene Grace+flinch moves +1</li>
+<li>Swagger additionally: user has Foul Play/Psych Up/Spectral Thief, or
+holds Mirror Herb: <span class="sc-pos">+1</span> Score</li>
+<li>Flatter additionally: same list minus Foul Play: <span class="sc-pos">+1</span> Score</li>
+<li>Doubles, targeting partner: <span class="sc-pos">+9</span> Score
+(25%), <span class="sc-pos">+8</span> Score (75%) if partner can’t be
+confused and benefits from the stat swing</li>
+</ul>
+<h3 id="attract">Attract</h3>
+<ul>
+<li>Blocked via AI_CanBeInfatuated</li>
+<li>Singles only: if target would faint from secondary damage before
+Attract could ever trigger (and target’s faster), skip entirely</li>
+<li><span class="sc-pos">+1</span> Score if target already has status,
+confusion, or is trapped (attract “piles on”)</li>
+</ul>
+<h3 id="yawn">Yawn</h3>
+<ul>
+<li>Blocked if already yawned, or via the standard sleep-immunity
+check</li>
+</ul>
+<h2 id="stat-lowering-moves">STAT-LOWERING MOVES</h2>
+<p>Every stat-down effect is individually blocked at -20 if the target’s
+stat is already at minimum, AND blocked by a specific per-stat ability
+list:</p>
+<ul>
+<li>Attack-down / Tickle / Venom Drench / Noble Roar: Hyper Cutter,
+Clear Body, White Smoke, Full Metal Body, Defiant, Competitive,
+Contrary</li>
+<li>Defense/Speed/Sp.Atk/Sp.Def-down: Clear Body, White Smoke, Full
+Metal Body, Defiant, Competitive, Contrary (no Hyper Cutter — that’s
+Attack-specific)</li>
+<li>Accuracy-down: adds Keen Eye, Mind’s Eye to the above list</li>
+<li>Evasion-down: same Clear Body family list</li>
+<li>Venom Drench additionally requires the target to actually be
+poisoned already, or -20</li>
+</ul>
+<p>On-hit stat-down variants (100% chance only; Covert Cloak/Shield Dust
+block them entirely):</p>
+<ul>
+<li>ShouldLower[Stat] worthwhile: <span class="sc-pos">+6</span> Score;
+else <span class="sc-pos">+5</span> Score</li>
+<li>Doubles spread target: <span class="sc-pos">+1</span> Score
+additional</li>
+</ul>
+<p>Standalone stat-down moves:</p>
+<ul>
+<li>Not worthwhile per ShouldLower[Stat]: <span class="sc-neg">-2</span>
+Score</li>
+<li>Target’s stat already below default: <span class="sc-neg">-2</span>
+Score</li>
+<li>Else: <span class="sc-pos">+1</span> Score (~20%)</li>
+<li>Accuracy-down specifically: an extra +2/+1/-1 tier based on the AI’s
+own HP (&gt;90%/&gt;60%/&lt;60%)</li>
+<li>Special Defense-down specifically uses a slightly different gate
+(target already lowered, 80% chance -2, else 20% chance +1)</li>
+</ul>
+<h3 id="tickle">Tickle</h3>
+<p>Checks BOTH Attack-lowering and Defense-lowering worthwhileness
+independently, stacking -2 penalties if either isn’t worth it, <span class="sc-pos">+1</span> Score (20%) if it clears both checks.</p>
+<h3 id="captivate">Captivate</h3>
+<p>Requires opposite, known genders (not genderless, not matching):
+<span class="sc-neg">-10</span> Score if it wouldn’t work.</p>
+<h2 id="recovery-amp-drain">RECOVERY &amp; DRAIN</h2>
+<p>Recovery Moves (Recover, Slack Off, Heal Order, Roost, Strength Sap,
+and the weather/HP-scaled ones)</p>
+<ul>
+<li>At max HP: <span class="sc-neg">-20</span> Score (hard block)</li>
+<li>HP ≥85%: <span class="sc-neg">-6</span> Score (still usable as a
+last resort)</li>
+<li>Else: ShouldRecover(…) true → <span class="sc-pos">+1</span> Score;
+false → <span class="sc-neg">-1</span> Score</li>
+<li>Morning Sun/Synthesis/Moonlight: check the boosted 67% Sun-benchmark
+FIRST (+1 if worthwhile), falling through to the standard 50% check
+otherwise</li>
+<li>Shore Up: same pattern but for Sandstorm’s 67% benchmark</li>
+<li>Rest: requires AI_CanSleep or blocked entirely; <span class="sc-pos">+2</span> Score (not +1) if the AI has a real way to wake
+up early (Cure Sleep/Status item, Sleep Talk/Snore in kit, Shed Skin,
+Early Bird, or Hydration+Rain); otherwise <span class="sc-pos">+1</span>
+Score</li>
+<li>Pain Split: averages both HP totals: if the resulting HP clears a
+30%-of-max benchmark above current AND ShouldRecover confirms it’s worth
+it: <span class="sc-pos">+2</span> Score; else <span class="sc-neg">-1</span> Score</li>
+</ul>
+<p>Swallow — see Setup Moves section (Stockpile family) for its exact
+healPercent-tiered logic.</p>
+<h3 id="purify">Purify</h3>
+<ul>
+<li>Requires target to have a status condition, or -20 (unless target is
+your own Doubles partner — always heal your ally)</li>
+<li>Blocked at max HP, discouraged (-6) at ≥90% HP</li>
+<li>Viability: <span class="sc-pos">+1</span> Score if the user itself
+has a status to cure</li>
+</ul>
+<h3 id="refresh">Refresh</h3>
+<ul>
+<li>Blocked (-20) if AI could be KO’d, or if there’s no actual status to
+cure</li>
+<li>Viability: <span class="sc-pos">+1</span> Score if a status is
+present</li>
+</ul>
+<h3 id="drain-moves-giga-drain-draining-kiss-etc">Drain Moves (Giga
+Drain, Draining Kiss, etc.)</h3>
+<p>If target lacks Liquid Ooze:</p>
+<ul>
+<li>AI at half HP or under, kills target in ≤4 hits: <span class="sc-pos">+6</span> Score</li>
+<li>AI holds Big Root: <span class="sc-pos">+1</span> Score</li>
+</ul>
+<h2 id="entry-hazards-amp-field">ENTRY HAZARDS &amp; FIELD</h2>
+<p>Stealth Rock, Stone Axe, Spikes, Ceaseless Edge, Toxic Spikes, Sticky
+Web (generic hazard pattern)</p>
+<ul>
+<li>Target has Magic Bounce: <span class="sc-neg">-30</span> Score (hard
+veto — worse than a normal block)</li>
+<li>Already at max layers (Spikes 3, Toxic Spikes 2) or partner is about
+to set the final layer: <span class="sc-neg">-20</span> Score</li>
+<li>Target has 0 usable party mons: <span class="sc-neg">-10</span>
+Score (viability layer)</li>
+<li>AI’s first turn, team &gt;1 alive mon: <span class="sc-pos">+2</span> Score (~98%, scaled slightly by exact
+roll)</li>
+<li>Existing 1+ layers (Spikes/Toxic Spikes only): <span class="sc-neg">-1</span> Score (~98%)</li>
+<li>General scaling bonus, EXACT formula: <span class="sc-pos">+1</span>
+Score at a chance of 192 × (alive mons ÷ total mons) out of 256 — e.g.,
+3 alive of 5 total ≈ 45%</li>
+<li>Sticky Web specifically: <span class="sc-pos">+3</span> Score flat
+on turn 1 instead of the scaling formula (no max-layer concept,
+single-use effect)</li>
+</ul>
+<h3 id="tailwind">Tailwind</h3>
+<ul>
+<li>Blocked (-20) if already up on your side, or if Trick Room is
+currently active</li>
+<li>Player has Trick Room or Taunt: <span class="sc-neg">-1</span> Score
+(50%) — partial discouragement, not a hard block</li>
+<li>AI/partner slower than any Player mon on the field: <span class="sc-pos">+3</span> Score</li>
+<li>Independently, if Player’s own Tailwind is already up and their
+Tailwind-setter is slower than the target: <span class="sc-pos">+3</span> Score (can stack with the above, up to +6
+total)</li>
+</ul>
+<h3 id="trick-room">Trick Room</h3>
+<ul>
+<li>Blocked if partner is already setting it, or if it’s already
+active</li>
+<li>Routes through a speed-priority helper; if that check fails: <span class="sc-neg">-1</span> Score, done</li>
+<li>If target has Trick Room or Taunt themselves: 50% chance to skip the
+bonus entirely</li>
+<li>Otherwise: <span class="sc-pos">+4</span> Score</li>
+</ul>
+<h3 id="wonder-room">Wonder Room</h3>
+<ul>
+<li>Blocked if already active or partner-duplicated</li>
+<li><span class="sc-pos">+1</span> Score if Player’s attacking split
+doesn’t match their better defensive stat (i.e., Wonder Room would help
+them attack you); <span class="sc-pos">+2</span> Score (25%) flat on
+top</li>
+</ul>
+<h3 id="magic-room">Magic Room</h3>
+<ul>
+<li>Blocked if already active or partner-duplicated</li>
+<li><span class="sc-pos">+3</span> Score (25%)</li>
+</ul>
+<h3 id="mud-sport-water-sport">Mud Sport, Water Sport</h3>
+<ul>
+<li>Blocked if already active (field or personal status) or
+partner-duplicated</li>
+<li><span class="sc-pos">+3</span> Score (25%)</li>
+</ul>
+<h3 id="gravity">Gravity</h3>
+<ul>
+<li>Blocked if already active</li>
+<li>50% chance of any bonus at all; within that, always <span class="sc-pos">+1</span> Score, with a further 25% chance of <span class="sc-pos">+4</span> Score more (so outcomes are effectively: 50%
+nothing, ~37.5% +1, ~12.5% +5)</li>
+</ul>
+<h3 id="weather-moves-sandstormsunrainhailsnow">Weather Moves
+(Sandstorm/Sun/Rain/Hail/Snow)</h3>
+<ul>
+<li>Blocked if that weather (or a Primal version) is already active, or
+partner is already setting a different weather this turn</li>
+<li>Hail/Snow specifically: <span class="sc-neg">-2</span> Score if the
+OTHER snow-family weather is active (prevents Hail↔︎Snow
+ping-ponging)</li>
+<li>ShouldSet[Weather] true: <span class="sc-pos">+2</span> Score, plus
+<span class="sc-pos">+1</span> Score (80%) more if holding the matching
+extending rock (Smooth/Icy/Damp/Heat Rock)</li>
+</ul>
+<h3 id="terrain-moves-electricgrassypsychicmisty">Terrain Moves
+(Electric/Grassy/Psychic/Misty)</h3>
+<ul>
+<li>Blocked if partner is setting a different terrain, or this terrain’s
+already active</li>
+<li><span class="sc-pos">+2</span> Score flat, plus <span class="sc-pos">+1</span> Score (80%) if holding Terrain Extender</li>
+</ul>
+<h3 id="imprison">Imprison</h3>
+<ul>
+<li>Blocked if already imprisoning</li>
+<li>ShouldImprison true: <span class="sc-pos">+3</span> Score</li>
+</ul>
+<h3 id="ion-deluge">Ion Deluge</h3>
+<ul>
+<li>Blocked if already active or partner-duplicated</li>
+<li>If AI has Volt Absorb/Motor Drive/Lightning Rod and predicts the
+target’s move is Normal-type: <span class="sc-pos">+1</span> Score;
+always followed by a baseline <span class="sc-neg">-1</span> Score (net
+0 or -1)</li>
+</ul>
+<h3 id="fairy-lock">Fairy Lock</h3>
+<ul>
+<li>Blocked if already active or partner-duplicated</li>
+<li>Target not already trapped and ShouldTrap confirms: <span class="sc-pos">+1</span> Score, followed by baseline <span class="sc-neg">-1</span> Score (net 0 or -1)</li>
+</ul>
+<h3 id="magnet-rise">Magnet Rise</h3>
+<ul>
+<li>Extensive exclusion list: Gravity active, existing Magnet Rise
+timer, Iron Ball held, already rooted/magnet-risen/smacked-down, or
+simply not grounded to begin with</li>
+<li>Viability: only relevant if grounded AND target has a Ground move;
+AI faster: <span class="sc-pos">+2</span> Score (90%, denies the move
+entirely); AI slower: <span class="sc-neg">-1</span> Score (too late to
+matter)</li>
+</ul>
+<h3 id="telekinesis">Telekinesis</h3>
+<ul>
+<li>Extensive exclusion list: target already
+telekinesis’d/rooted/smacked-down, Gravity active, Iron Ball, banned
+species, partner-duplicated</li>
+</ul>
+<h3 id="camouflage">Camouflage</h3>
+<ul>
+<li>Blocked via CanCamouflage helper; no additional viability bonus
+beyond default</li>
+</ul>
+<h3 id="lucky-chant">Lucky Chant</h3>
+<ul>
+<li>Blocked if already active or partner-duplicated; no additional
+viability bonus</li>
+</ul>
+<h3 id="pledge-combo-move">Pledge (combo move)</h3>
+<ul>
+<li>Doubles only: if the partner is also about to use a different Pledge
+move while asleep/frozen, blocked (-20, don’t set up a combo that’ll
+just fail)</li>
+<li>Viability: partner also knows a Pledge move: <span class="sc-pos">+3</span> Score</li>
+</ul>
+<h2 id="switching-amp-sacrifice-moves">SWITCHING &amp; SACRIFICE MOVES</h2>
+<h3 id="u-turn-volt-switch-flip-turn-parting-shot-hit-escape-family">U-Turn,
+Volt Switch, Flip Turn, Parting Shot (Hit-Escape family)</h3>
+<ul>
+<li>Blocked (0 usable party mons aside) — Palafin gets a flat <span class="sc-pos">+12</span> Score that overrides everything else</li>
+<li>Kills Player in more than 3 hits: <span class="sc-pos">+6</span>
+Score (Parting Shot already defaults to +6 as a status move, so this
+doesn’t stack additionally for it)</li>
+<li>Target has Roar/phazing: <span class="sc-neg">-1</span> Score
+(discourages switching into a guaranteed phaze-back)</li>
+</ul>
+<h3 id="baton-pass">Baton Pass</h3>
+<ul>
+<li>Blocked if no stat is raised AND target has Roar/phazing, or if 0
+usable party mons</li>
+<li>Viability: 25% chance of a flat -1; then <span class="sc-pos">+1</span> Score if
+Substitute/Rooted/Aqua-Ring/Magnet-Rise/Power-Trick is active, or any
+stat is raised at all</li>
+</ul>
+<h3 id="teleport-chilly-reception">Teleport, Chilly Reception</h3>
+<ul>
+<li>Blocked if 0 usable party mons, or (faster AI about to be KO’d
+anyway, Sash/Sturdy/Disguise/Substitute exempted)</li>
+<li>Viability: ONLY scores positively in genuine trainer battles on the
+Player’s side; kills Player in &gt;3 hits: <span class="sc-pos">+1</span> Score (50%)</li>
+</ul>
+<h3 id="shed-tail">Shed Tail</h3>
+<ul>
+<li>Blocked: 0 usable party mons, already Substituted, target is
+Infiltrator, AI HP ≤50%, or target has a sound move</li>
+<li>Viability: if faster and can already KO the target: <span class="sc-pos">+1</span> Score (50%); else <span class="sc-pos">+1</span> Score (25%) as a flat fallback</li>
+</ul>
+<h3 id="explosion-family-memento">Explosion-family, Memento</h3>
+<ul>
+<li>Blocked entirely: 0-effectiveness matchup, Damp ability anywhere on
+the field, target’s stats already fully lowered (Memento only), or
+target holds Clear Amulet (Memento only)</li>
+<li>If it’s the AI’s last mon and Player still has mons left: <span class="sc-neg">-10</span> Score; else <span class="sc-neg">-1</span>
+Score</li>
+<li>HP-tiered scoring: &lt;10% +10; &lt;33% <span class="sc-pos">+8</span> (70%); &lt;66% <span class="sc-pos">+7</span>
+(50%); else <span class="sc-pos">+7</span> (5%)</li>
+</ul>
+<h3 id="final-gambit">Final Gambit</h3>
+<ul>
+<li>Same last-mon penalty structure as Explosion</li>
+<li>Faster, HP ≥ target’s: <span class="sc-pos">+8</span> Score; faster
+but can still finish the kill anyway: <span class="sc-pos">+7</span>
+Score; else (slower): <span class="sc-pos">+6</span> Score flat</li>
+</ul>
+<h3 id="healing-wish-lunar-dance">Healing Wish, Lunar Dance</h3>
+<ul>
+<li>Blocked: 0 usable party mons, partner already doing the same thing,
+or the whole team (except the user) is already fully healed</li>
+</ul>
+<h3 id="revival-blessing">Revival Blessing</h3>
+<ul>
+<li>Blocked if there’s no fainted party member at all</li>
+<li>Discouraged (-10) if the AI can already win without it; discouraged
+(-20) if reviving would just die again before it matters (slower, target
+can KO)</li>
+<li>Viability: <span class="sc-pos">+2</span> Score (50%) if a fainted
+mon genuinely exists</li>
+</ul>
+<h2 id="priority-amp-combo-moves">PRIORITY &amp; COMBO MOVES</h2>
+<h3 id="fake-out">Fake Out</h3>
+<ul>
+<li>First Impression exempted from all of this (it’s the same effect ID
+but different move)</li>
+<li>Blocked (-30) if it’s not literally the user’s first turn out</li>
+<li>Blocked (-30) if target has Inner Focus/Shield Dust/Covert Cloak AND
+the move wouldn’t kill anyway</li>
+<li>Viability: <span class="sc-pos">+9</span> Score flat, stacks with
+HDM</li>
+</ul>
+<h3 id="feint">Feint</h3>
+<ul>
+<li>Doubles, target has a Protection move (not Wide/Quick Guard): <span class="sc-pos">+13</span> Score (~10.1%)</li>
+<li>Else if it can outright kill the target: <span class="sc-pos">+6</span> Score (~10.1%)</li>
+</ul>
+<h3 id="upper-hand">Upper Hand</h3>
+<ul>
+<li>~80% chance to just skip entirely (204/256 disqualifies)</li>
+<li>Within the remaining ~20%: requires target to actually have a
+priority move, or -20</li>
+<li>If it clears both: <span class="sc-pos">+13</span> Score (~10.1% —
+same probability gate reapplied in viability)</li>
+</ul>
+<h3 id="pursuit">Pursuit</h3>
+<ul>
+<li>Truant/Defeatist user + Mummy-family target: <span class="sc-pos">+12</span> Score flat, overrides everything else</li>
+<li>Can outright kill: <span class="sc-pos">+11</span> Score</li>
+<li>Target HP &lt;20%: <span class="sc-pos">+10</span> Score</li>
+<li>Target HP &lt;40%: <span class="sc-pos">+8</span> Score (50%)</li>
+<li>AI faster: <span class="sc-pos">+3</span> Score (stacks with the
+above)</li>
+</ul>
+<h3 id="sucker-punch-thunderclap">Sucker Punch, Thunderclap</h3>
+<ul>
+<li>Used last turn: <span class="sc-neg">-20</span> Score, 66% of the
+time (resets fully if a different move was used the prior turn,
+regardless of how long ago Sucker Punch was last used)</li>
+</ul>
+<h3 id="fell-stinger">Fell Stinger</h3>
+<ul>
+<li>Requires Attack not maxed, not Contrary, and a confirmed kill</li>
+<li>Faster: <span class="sc-pos">+9</span> Score; slower: <span class="sc-pos">+6</span> Score</li>
+</ul>
+<h3 id="meteor-beam-electro-shot">Meteor Beam, Electro Shot</h3>
+<ul>
+<li>Requires Power Herb (or Rain for Electro Shot specifically), else
+-20</li>
+<li><span class="sc-pos">+9</span> Score flat if usable (not
+chance-gated for these two specifically)</li>
+</ul>
+<h3 id="two-turn-attacks-generally-sky-attack-freeze-shock-ice-burn-etc">Two-Turn
+Attacks generally (Sky Attack, Freeze Shock, Ice Burn, etc.)</h3>
+<ul>
+<li>Requires Power Herb, else -20</li>
+<li><span class="sc-pos">+9</span> Score (80%) — this IS chance-gated,
+unlike Meteor Beam/Electro Shot above</li>
+</ul>
+<h2 id="protection-moves">PROTECTION MOVES</h2>
+<p>Protect, Detect, Spiky Shield, Silk Trap, Baneful Bunker, Obstruct,
+Burning Bulwark (standard Protect family)</p>
+<ul>
+<li>Quick Guard/Wide Guard/Crafty Shield: blocked entirely in Singles
+(-20); Mat Block additionally blocked outside the user’s first turn</li>
+<li>Target already incapacitated: -20 (no point protecting against
+nothing)</li>
+<li>Usage-counter decay (does not apply to Quick Guard/Wide Guard/Crafty
+Shield, which have infinite uses): about to faint after protecting
+anyway (Moxie/Beast Boost exempted) -10; used once already, 50% chance
+-20; used twice+ already, guaranteed -20</li>
+<li>Viability, Power Construct (Zygarde) or Zen Mode (Darmanitan) about
+to transform: <span class="sc-pos">+8</span> Score (80%)</li>
+<li>Self bad-status present
+(poison/burn/curse/infatuation/perish-song/leech-seed/yawn): <span class="sc-neg">-1</span> Score (protecting just prolongs it)</li>
+<li>Target has one of those same conditions: <span class="sc-pos">+1</span> Score (let it tick)</li>
+<li>First turn, Speed Boost, AI slower: <span class="sc-pos">+3</span>
+Score (80%)</li>
+<li>First turn, Singles, ability isn’t Guts/Quick Feet/Flare Boost:
+<span class="sc-neg">-1</span> Score (no orb-synergy reason to
+stall)</li>
+</ul>
+<h3 id="kings-shield-specifically-separate-branch-doesnt-stack-with-the-above">King’s
+Shield specifically (separate branch, doesn’t stack with the above)</h3>
+<ul>
+<li>Slower, target can KO, not Sash/Sturdy-protected: <span class="sc-pos">+10</span> Score (80%)</li>
+<li>Target has physical moves: <span class="sc-pos">+1</span> Score
+(75%); else <span class="sc-pos">+1</span> Score (37.5%)</li>
+</ul>
+<h3 id="endure">Endure</h3>
+<ul>
+<li>Shares the same usage-counter decay as Protect (-10 after 1 use at
+50%, -10 guaranteed after 2+)</li>
+<li>Blocked entirely if already at 1 HP, or if guaranteed residual
+damage would kill anyway</li>
+<li>Target can KO this turn: HP still &gt;25% (pinch berry hasn’t
+triggered) and holding a pinch-berry effect: <span class="sc-pos">+2</span> Score; else if HP &gt;1 and has
+Flail/Endeavor/Rage Fist: <span class="sc-pos">+2</span> Score; else if
+Speed Boost: <span class="sc-pos">+1</span> Score (+1 more with Baton
+Pass); else 50% chance -1</li>
+<li>Target can’t KO: 50% chance -1</li>
+</ul>
+<h2 id="trapping-amp-binding">TRAPPING &amp; BINDING</h2>
+<h3 id="octolock-mean-look-anchor-shot-spirit-shackle-thousand-waves-jaw-lock-trap-family">Octolock,
+Mean Look, Anchor Shot, Spirit Shackle, Thousand Waves, Jaw Lock,
+Trap-family</h3>
+<ul>
+<li>Mean Look specifically fails outright against Ghost-types or Shed
+Shell holders</li>
+<li>Octolock/general Trap blocked if target already trapped or has 0
+usable party mons</li>
+<li>Viability, Octolock/Mean Look: -6 baseline, then <span class="sc-pos">+6</span> Score (80%) or <span class="sc-pos">+8</span>
+Score (20%)</li>
+<li>Generic Trap (Fire Spin/Whirlpool/Snap Trap etc.): <span class="sc-pos">+6</span> Score (80%)/<span class="sc-pos">+8</span>
+Score (20%); holding Binding Band/Grip Claw: <span class="sc-pos">+1</span> Score</li>
+<li>Jaw Lock/Hit-Prevent-Escape specifically: <span class="sc-pos">+6</span> Score only if the target is ALREADY trapped
+(reinforcing an existing trap, not establishing one)</li>
+</ul>
+<h3 id="dragon-tail-circle-throw">Dragon Tail, Circle Throw</h3>
+<ul>
+<li>Blocked if target is Perish-Song’ed or could just KO the AI
+first</li>
+<li>Does not follow Roar’s viability scoring — no positive bonuses
+beyond default</li>
+</ul>
+<h3 id="roar-whirlwind">Roar, Whirlwind</h3>
+<ul>
+<li>Blocked if target has 0 usable party mons or Suction Cups</li>
+<li>Viability: 3+ Spikes +1; 2+ Spikes <span class="sc-pos">+1</span>
+(75%); 1+ Spikes <span class="sc-pos">+1</span> (50%); Stealth Rock
+present <span class="sc-pos">+2</span> Score (50%) — note this is +2,
+not +1; baseline 50% chance of -1</li>
+</ul>
+<h2 id="special-damage-moves">SPECIAL DAMAGE MOVES</h2>
+<h3 id="ohko-moves-fissure-horn-drill-sheer-cold">OHKO Moves (Fissure,
+Horn Drill, Sheer Cold)</h3>
+<ul>
+<li>Sheer Cold vs. Ice-type: hard return 0 (Gen 7+ immunity)</li>
+<li>Blocked via ShouldTryOHKO helper otherwise</li>
+<li>Always-hits status active (Lock-On/Mind Reader): <span class="sc-pos">+8</span> Score</li>
+<li>(Note: there is a dead/unreachable +6 bonus for a fast-kill-adjacent
+OHKO scenario, placed after a <code>break</code> in the source — it can
+never actually execute in this build.)</li>
+</ul>
+<h3 id="salt-cure">Salt Cure</h3>
+<ul>
+<li>Blocked if already applied to the target</li>
+<li><span class="sc-pos">+6</span> Score (80%)/<span class="sc-pos">+7</span> Score (20%); target is Water or Steel type:
+<span class="sc-pos">+1</span> Score more</li>
+</ul>
+<h3 id="knock-off">Knock Off</h3>
+<ul>
+<li>Requires target to actually have a removable item</li>
+<li>Kills target in &gt;3 hits: <span class="sc-pos">+6</span>
+Score</li>
+</ul>
+<h3 id="secret-power">Secret Power</h3>
+<ul>
+<li>Grassy Terrain active: <span class="sc-pos">+6</span> Score
+(25%)</li>
+</ul>
+<h3 id="rollout-ice-ball">Rollout, Ice Ball</h3>
+<ul>
+<li><span class="sc-pos">+6</span> Score flat, plus <span class="sc-pos">+1</span> Score (50%) more, plus <span class="sc-pos">+1</span> Score if Defense Curl is already up</li>
+</ul>
+<h3 id="fury-cutter-echoed-voice">Fury Cutter, Echoed Voice</h3>
+<ul>
+<li><span class="sc-pos">+6</span> Score flat, plus <span class="sc-pos">+2</span> Score more if the AI’s own last move was the
+same one (chain continuation)</li>
+</ul>
+<h3 id="relic-song">Relic Song</h3>
+<ul>
+<li>AI is Meloetta: <span class="sc-pos">+10</span> Score</li>
+<li>AI is Meloetta-Pirouette: <span class="sc-pos">+1</span> Score
+(25%)</li>
+</ul>
+<p>Recharge moves (Hyper Beam, Blast Burn, Hydro Cannon, Frenzy Plant,
+Giga Impact, Rock Wrecker, Roar of Time, Prismatic Laser, Meteor
+Assault, Eternabeam)</p>
+<ul>
+<li>Wonder Guard target, not super effective: <span class="sc-neg">-20</span> Score</li>
+<li>Truant users exempted from the next check (they’re used to losing a
+turn anyway); otherwise, can’t confirm a kill: <span class="sc-neg">-1</span> Score</li>
+</ul>
+<h3 id="tri-attack">Tri Attack</h3>
+<ul>
+<li>On-hit only, 100% chance required, Covert Cloak/Shield Dust block
+it</li>
+<li>Target can be statused at all: <span class="sc-pos">+6</span>
+Score</li>
+</ul>
+<h3 id="sky-drop">Sky Drop</h3>
+<ul>
+<li>Blocked: target is already Flying-type, AI would faint from weather
+while airborne, Substitute blocks it, or target weighs 200kg+</li>
+</ul>
+<h3 id="synchronoise">Synchronoise</h3>
+<ul>
+<li>Requires target to hold Ring Target OR share a type with the user,
+else -20</li>
+</ul>
+<p>Order Up — see Setup Moves section (Tatsugiri Commander
+mechanic).</p>
+<h2 id="utility-amp-misc-moves">UTILITY &amp; MISC MOVES</h2>
+<h3 id="screens-light-screen-reflect-aurora-veil">Screens (Light Screen,
+Reflect, Aurora Veil)</h3>
+<ul>
+<li>Blocked if already up on your side, or partner is setting the same
+one this turn</li>
+<li>Aurora Veil additionally requires active Hail/Snow, or -20</li>
+<li>ShouldSetScreen true: <span class="sc-pos">+1</span> Score (50%),
+plus <span class="sc-pos">+1</span> Score more with Light Clay</li>
+</ul>
+<h3 id="conversion">Conversion</h3>
+<ul>
+<li>Blocked if already the same type as its own first move</li>
+<li><span class="sc-pos">+2</span> Score if the type can genuinely still
+change</li>
+</ul>
+<h3 id="conversion-2">Conversion 2</h3>
+<ul>
+<li>Blocked if there’s no unfavorable last move to react to</li>
+<li><span class="sc-pos">+1</span> Score if the target could otherwise
+KO the AI</li>
+</ul>
+<h3 id="laser-focus">Laser Focus</h3>
+<ul>
+<li>Blocked if already active, or target has Shell Armor/Battle
+Armor/Magma Armor/Leaf Guard, or Lucky Chant is up on their side</li>
+<li>AI has Sniper: <span class="sc-pos">+1</span> Score</li>
+</ul>
+<h3 id="focus-energy">Focus Energy</h3>
+<ul>
+<li>Same crit-immunity block list as Laser Focus</li>
+<li>AI has Super Luck/Sniper/Scope Lens/any high-crit move: <span class="sc-pos">+1</span> Score</li>
+</ul>
+<h3 id="substitute">Substitute</h3>
+<ul>
+<li>Blocked: already substituted, target Infiltrator, HP ≤25%, or target
+has a sound move (Soundproof exempts)</li>
+<li>Viability: Player Perish-Song’ed +1; Player
+burned/poisoned/frostbitten <span class="sc-pos">+1</span> (25%); not
+wrapped and HP&gt;70% +1 (25%, note: this condition’s exact code has an
+operator-precedence quirk worth being cautious about rather than
+treating as fully confirmed); Speed Boost <span class="sc-pos">+1</span>
+(25%); baseline 50% chance of -1</li>
+</ul>
+<h3 id="leech-seed">Leech Seed</h3>
+<ul>
+<li>Blocked: Grass-type target, already seeded, target knows Rapid Spin,
+or target has Liquid Ooze/Magic Guard</li>
+<li>Viability: <span class="sc-pos">+1</span> Score (50%); kills target
+in &gt;3 hits <span class="sc-pos">+1</span> Score (50%) more</li>
+</ul>
+<h3 id="disable">Disable</h3>
+<ul>
+<li>Blocked if no anticipated move to disable (checked differently
+depending on whether the AI predicts to move first or not); Mental Herb
+exempts the target</li>
+<li>Viability: can disable a move that would otherwise kill the AI:
+<span class="sc-pos">+1</span> Score; else if conditions aren’t ideal:
+<span class="sc-neg">-2</span> Score</li>
+</ul>
+<h3 id="encore">Encore</h3>
+<ul>
+<li>Same prediction-gating as Disable</li>
+<li>Faster, target’s last move was Encore-encouraged (status moves, Fake
+Out, First Impression): <span class="sc-pos">+2</span> Score; else 50%
+chance -1</li>
+</ul>
+<h3 id="snore-sleep-talk">Snore, Sleep Talk</h3>
+<ul>
+<li>Blocked unless the AI is genuinely asleep/Comatose and it’s not a
+wakeup turn (Sleep Talk gets no bonus specifically under Comatose)</li>
+<li><span class="sc-pos">+15</span> Score if conditions are met</li>
+</ul>
+<h3 id="destiny-bond">Destiny Bond</h3>
+<ul>
+<li>Blocked if Sash/Sturdy/Mimikyu-Disguise is active (would waste the
+“guaranteed” trade)</li>
+<li>Faster, target can KO: <span class="sc-pos">+1</span> Score
+(~81.5%); slower: <span class="sc-neg">-1</span> Score (50%)</li>
+</ul>
+<h3 id="wish-heal-bellaromatherapy">Wish, Heal Bell/Aromatherapy</h3>
+<ul>
+<li>Wish blocked if already queued</li>
+<li>Heal Bell blocked if nobody has a status, or partner’s already doing
+it</li>
+<li>ShouldUseWishAromatherapy true: <span class="sc-pos">+1</span>
+Score; else <span class="sc-neg">-1</span> Score</li>
+</ul>
+<h3 id="nightmare">Nightmare</h3>
+<ul>
+<li>Blocked unless target is genuinely asleep (not just Comatose) and
+not already nightmared</li>
+<li><span class="sc-pos">+1</span> Score if conditions hold, <span class="sc-pos">+1</span> Score more if target is also trapped</li>
+</ul>
+<h3 id="perish-song">Perish Song</h3>
+<ul>
+<li>Extensive Doubles-aware blocking: won’t use if it’d wipe your own
+team while losing, won’t use if both enemies are already
+perish-songed/soundproof, won’t duplicate partner’s use</li>
+<li>Target trapped: <span class="sc-pos">+2</span> Score</li>
+</ul>
+<h3 id="recycle">Recycle</h3>
+<ul>
+<li>Blocked: no used-up item to recycle, or currently holding an
+item</li>
+<li><span class="sc-pos">+1</span> Score if there’s a genuine used item;
+<span class="sc-pos">+1</span> Score more if it’s specifically
+encouraged to recycle; with Ripen: stat-boosting berry and HP&gt;60% +1;
+HP-restore berry timed to matter (can’t otherwise win, or wouldn’t
+survive without it) +1</li>
+</ul>
+<h3 id="magic-coat">Magic Coat</h3>
+<ul>
+<li>Blocked unless the target has a Magic-Coat-affected move queued</li>
+<li>Target has a hazard-setting move (Stealth Rock/Spikes/Toxic
+Spikes/Sticky Web): <span class="sc-pos">+1</span> Score (50%); always
+followed by a baseline -1</li>
+</ul>
+<h3 id="reflect-type">Reflect Type</h3>
+<ul>
+<li>Blocked if attacker and target already share all three type
+slots</li>
+<li>ShouldReflectType true: <span class="sc-pos">+1</span> Score (50%);
+else <span class="sc-neg">-1</span> Score (50%)</li>
+</ul>
+<h3 id="bide">Bide</h3>
+<ul>
+<li>Blocked: target has no damaging move, AI HP &lt;30%, or target is
+asleep/frozen</li>
+<li>No additional viability bonus beyond default</li>
+</ul>
+<h3 id="do-nothing">Do Nothing</h3>
+<ul>
+<li>Always -20 in CheckBadMove, additionally -10 in CheckViability (this
+effect exists for placeholder/failure cases, never a real choice)</li>
+</ul>
+<p>Camouflage, Lucky Chant — see Entry Hazards &amp; Field section.</p>
+<h3 id="quash">Quash</h3>
+<ul>
+<li>Doubles only, requires AI to be faster than target, blocked
+otherwise/partner-duplicated</li>
+</ul>
+<h3 id="after-you">After You</h3>
+<ul>
+<li>Doubles only, must target own partner, requires AI faster than
+target, blocked otherwise/partner-duplicated</li>
+</ul>
+<h3 id="metronome-the-stat-stacking-item-interaction-move-not-the-rng-move">Metronome
+(the stat-stacking item-interaction move, not the RNG move)</h3>
+<ul>
+<li>Team’s alive percentage &lt;35%: <span class="sc-neg">-5</span>
+Score (last-third-of-team penalty)</li>
+</ul>
+<p>Copycat, Mirror Move, Me First — see Damaging Moves section
+(recursive-evaluation moves).</p>
+<h3 id="bestow">Bestow</h3>
+<ul>
+<li>Blocked if the user has no item, or can’t legally lose it</li>
+</ul>
+<h3 id="flower-shield">Flower Shield</h3>
+<ul>
+<li>Blocked unless the user (or, in Doubles, its partner) is
+Grass-type</li>
+</ul>
+<h3 id="aromatic-mist">Aromatic Mist</h3>
+<ul>
+<li>Doubles only, requires a living partner whose Sp. Def can still
+rise, else -20</li>
+</ul>
+<p>Bide, Snatch — Snatch specifically blocked unless target has a
+Snatch-affected move queued, or partner’s already doing it; no viability
+bonus beyond default.</p>
+<h3 id="soak-magic-powder">Soak, Magic Powder</h3>
+<ul>
+<li>Blocked if target is already purely the resulting type, or
+partner-duplicated</li>
+</ul>
+<h3 id="trick-or-treat-forests-curse-third-type-moves">Trick-or-Treat,
+Forest’s Curse (Third-Type moves)</h3>
+<ul>
+<li>Blocked if target already has that type, or partner-duplicated</li>
+</ul>
+<h3 id="electrify">Electrify</h3>
+<ul>
+<li>Blocked if AI is slower than target, or partner-duplicated</li>
+</ul>
+<h3 id="topsy-turvy">Topsy Turvy</h3>
+<ul>
+<li>Blocked: no positive stat changes to invert, negative stages already
+exceed positive ones, or partner-duplicated</li>
+<li>Viability: +1 if positive stages genuinely outnumber negative,
+followed by an unconditional -1 (net 0 or -1, not a clean
+either/or)</li>
+<li>Doubles, on partner: <span class="sc-pos">+10</span> Score
+(25%)/<span class="sc-pos">+8</span> Score (75%) if partner’s positive
+changes are currently fewer than negative</li>
+</ul>
+<h3 id="powder">Powder</h3>
+<ul>
+<li>Blocked unless target has a Fire-type move</li>
+<li>Viability: +1 if target has Fire move, followed by an unconditional
+-1 (net 0 or -1)</li>
+</ul>
+<h2 id="counter-attack-moves">COUNTER-ATTACK MOVES</h2>
+<h3 id="counter">Counter</h3>
+<ul>
+<li>Blocked: target incapacitated/infatuated/confused, target has ONLY
+special moves, or AI would die first (Sash/Sturdy/Mimikyu/Substitute
+exempted)</li>
+<li>Base <span class="sc-pos">+6</span> Score always</li>
+<li>Sash/Sturdy-protected AND target physical-only: <span class="sc-pos">+2</span> Score more; else target physical-only: <span class="sc-pos">+2</span> Score (80%)</li>
+<li>AI faster: <span class="sc-neg">-1</span> Score (25%, less useful if
+you’d rather just attack)</li>
+<li>Target has a status move: <span class="sc-neg">-1</span> Score
+(25%)</li>
+</ul>
+<h3 id="mirror-coat">Mirror Coat</h3>
+<p>Mirrors Counter exactly, but for special-only targets.</p>
+<h3 id="metal-burst">Metal Burst</h3>
+<ul>
+<li>Blocked: target incapacitated/infatuated/confused, or AI is faster
+than target (needs to go second)</li>
+<li>Base <span class="sc-pos">+6</span> Score always</li>
+<li>Sash/Sturdy-protected: <span class="sc-pos">+2</span> Score
+more</li>
+<li><span class="sc-pos">+1</span> Score (25%) flat bonus</li>
+<li>Target has a status move: <span class="sc-neg">-1</span> Score
+(50%)</li>
+</ul>
+<h2 id="stat-copy-amp-manipulation-moves">STAT-COPY &amp; MANIPULATION
+MOVES</h2>
+<h3 id="psych-up-spectral-thief">Psych Up, Spectral Thief</h3>
+<ul>
+<li>Spectral Thief additionally: <span class="sc-pos">+5</span> Score if
+not already the best-damage option, then falls through into the same
+stat-copying logic as Psych Up</li>
+<li>Per-stat loop: Player’s Attack higher and AI has physical moves +1;
+Player’s SpAtk higher and AI has special moves +1; every other stat
+where Player’s ahead: unconditional +1</li>
+<li>Doubles, targeting partner instead: <span class="sc-pos">+10</span>
+Score (25%)/<span class="sc-pos">+8</span> Score (75%) if the partner
+has more raised stats overall</li>
+</ul>
+<p>Topsy Turvy — see Utility &amp; Misc section.</p>
+<h3 id="heart-swap">Heart Swap</h3>
+<ul>
+<li>Only useful if ALL of the target’s stats are ≥ the user’s own
+(prevents an infinite stat-copy loop) and at least one is strictly
+higher</li>
+<li><span class="sc-pos">+1</span> Score if conditions hold, followed by
+an unconditional -1 (net 0 or -1)</li>
+</ul>
+<h3 id="power-swap">Power Swap</h3>
+<ul>
+<li>Blocked (CheckBadMove) if the user’s own Attack+SpAtk stages are
+already ≥ the target’s</li>
+<li>Viability: only scores if the target genuinely has a higher stage in
+one of the two stats without being behind in the other; -1 penalty
+otherwise, unconditionally applied first</li>
+</ul>
+<h3 id="guard-swap">Guard Swap</h3>
+<p>Mirrors Power Swap for Defense/Sp. Defense. <span class="sc-neg">-10</span> Score if the user’s own stages are already ≥
+target’s (note: this specific penalty is -10, distinct from Power Swap’s
+implicit gating).</p>
+<h3 id="speed-swap">Speed Swap</h3>
+<ul>
+<li>Blocked (CheckBadMove) if in Trick Room and AI is already
+slower-or-equal, or if AI is already faster outside Trick Room (Speed
+Swap should only be used when it’d genuinely help)</li>
+<li>Viability: AI’s total Speed stat &lt; target’s: <span class="sc-pos">+1</span> Score; else <span class="sc-neg">-6</span>
+Score (a real penalty, not just a missed bonus)</li>
+</ul>
+<h3 id="power-split">Power Split</h3>
+<ul>
+<li>Blocked hard (-200, the single largest penalty in the whole file) if
+the user’s combined Attack+SpAtk is already ≥ the target’s combined
+total</li>
+<li>Viability: +1 if averaging would genuinely raise at least one of the
+user’s two attacking stats without lowering the other; -1 otherwise</li>
+</ul>
+<h3 id="guard-split">Guard Split</h3>
+<ul>
+<li>Blocked (-10, notably smaller than Power Split’s -200) under the
+same “already better” condition, mirrored for Defense/Sp. Defense</li>
+<li>Viability: same +1/-1 structure as Power Split</li>
+</ul>
+<h3 id="power-trick">Power Trick</h3>
+<ul>
+<li>Blocked if targeting own partner, or if Defense is already ≥ Attack
+while lacking a physical move</li>
+<li>Viability: <span class="sc-pos">+1</span> Score if Defense &gt;
+Attack and a physical move exists (Power Trick would let a bulky mon
+attack with its real strength)</li>
+</ul>
+<h2 id="ability-manipulation-moves">ABILITY-MANIPULATION MOVES</h2>
+<h3 id="role-play-doodle">Role Play, Doodle</h3>
+<ul>
+<li>Blocked: same ability already, target has no ability, attacker’s
+ability is on a banned-list, or target’s ability is banned</li>
+<li>Doodle additionally blocked if the partner already has that exact
+ability</li>
+<li>Viability: only avoids a flat -1 penalty if the trade is clean by
+every check (attacker/target not banned, attacker’s ability isn’t
+already great, target’s ability rated 5/max) — otherwise takes the -1
+even when technically legal</li>
+</ul>
+<h3 id="skill-swap-onto-opponent">Skill Swap (onto opponent)</h3>
+<ul>
+<li>Blocked: either side has no ability, either ability is banned, or
+target holds Ability Shield</li>
+<li>AI has Truant: <span class="sc-pos">+5</span> Score; AI’s ability
+rated 0 or target’s rated 10: <span class="sc-pos">+2</span> Score</li>
+<li>Separately in viability: target’s ability simply rated higher than
+the AI’s own: <span class="sc-pos">+1</span> Score</li>
+</ul>
+<p>Skill Swap (onto own partner) — leftover/partially-reworked code,
+explicitly marked as such in source</p>
+<ul>
+<li>Partner has Truant and the trade doesn’t give the AI a bad ability:
+<span class="sc-pos">+10</span> Score</li>
+<li>AI has Compound Eyes and partner has a usable low-accuracy move:
+<span class="sc-pos">+3</span> Score</li>
+</ul>
+<h3 id="worry-seed">Worry Seed</h3>
+<ul>
+<li>Blocked: target has Insomnia, target’s ability is on the
+worry-seed-banned list, or Ability Shield</li>
+<li>Target’s ability rated 5 (max): <span class="sc-pos">+1</span>
+Score</li>
+</ul>
+<h3 id="gastro-acid">Gastro Acid</h3>
+<ul>
+<li>Blocked: already suppressed, or ability is on its own banned
+list</li>
+<li>No specific viability bonus beyond default (a general “neutralize”
+tool)</li>
+</ul>
+<h3 id="simple-beam">Simple Beam</h3>
+<ul>
+<li>Blocked: ability banned, or Ability Shield</li>
+<li>Target’s ability rated 5: <span class="sc-pos">+1</span> Score</li>
+</ul>
+<h3 id="entrainment">Entrainment</h3>
+<ul>
+<li>Blocked: attacker has no ability, attacker’s ability is
+banned-as-giver, target’s ability is banned-as-receiver, Ability Shield,
+or attacker’s own ability is already rated worthless</li>
+<li>Viability: the trade is a clean upgrade for the target (not already
+the same, not Gastro-Acid-suppressed): <span class="sc-pos">+1</span>
+Score</li>
+</ul>
+<h2 id="doubles-specific-general-rules">DOUBLES-SPECIFIC GENERAL
+RULES</h2>
+<p>The pipeline, precisely: for every potential target (both foes and
+the AI’s own partner), the AI runs the FULL scoring chain as if that
+were the only target, then picks whichever target’s best move scored
+highest. A move that CAN’T legally hit a given target (via
+CanTargetBattler) is skipped entirely for that target, not just scored
+low. Don’t use a move against your own ally if its score is under 100 —
+confirmed exact threshold, not an estimate: below 100 gets force-set to
+-1, disqualifying it.</p>
+<h3 id="status-moves-targeting-a-partner">Status Moves Targeting a
+Partner</h3>
+<p>Don’t get the default +6 just for being a status move. Only scored
+well (+6, 25% chance, immediate return — doesn’t stack with anything
+else) if the partner has: Volt Absorb/Earth Eater/Water Absorb/Dry Skin
+(HP≤75%), Lightning Rod (special moves, SpAtk can rise), Motor Drive
+(Speed can rise), Storm Drain (special moves, SpAtk can rise), Flash
+Fire (has a Fire move, not already boosted), Sap Sipper (physical moves,
+Attack can rise), or Contrary (move is a stat-lowering effect).</p>
+<h3 id="weather-benefiting-the-partner">Weather Benefiting the
+Partner</h3>
+<p>Setting Sandstorm/Rain/Sun for a partner who’d genuinely benefit (via
+the same ShouldSet[Weather] checks used for the self-benefit case):
+<span class="sc-pos">+1</span> Score. Hail/Snow specifically: <span class="sc-pos">+2</span> Score (the partner must be alive to check
+Hail/Snow, a redundant-seeming but real distinct condition in the
+code).</p>
+<h3 id="round-self-initiation-check">Round (self-initiation check)</h3>
+<p>If the partner has ALREADY chosen Round this turn and the AI is
+slower than that partner: <span class="sc-pos">+13</span> Score. (Full
+mechanic, including the faster-initiator side and the Slot 1/Slot 2
+override caveat, is in the Doubles Combo Moves section below.)</p>
+<ul>
+<li>Targeting Your Own Partner — the full move-by-move whitelist</li>
+<li>Every one of these is checked ONLY when the move is actually aimed
+at your own ally. Anything not on this list gets a flat <span class="sc-neg">-30</span> Score (the default “don’t hit your partner”
+catch-all) — this whitelist is exhaustive as read from source, not
+illustrative.</li>
+<li>Role Play: user lacks Huge/Pure Power, partner has Huge Power/Pure
+Power/Illuminate: <span class="sc-pos">+10</span> Score (25%)/<span class="sc-pos">+8</span> Score (75%); else <span class="sc-neg">-30</span> Score</li>
+<li>Teatime: <span class="sc-neg">-1</span> Score (50%); pinch berry
+(either side) <span class="sc-pos">+8</span> Score; else any berry
+(either side) <span class="sc-pos">+6</span> Score</li>
+<li>Psych Up: checks Attack, then Sp. Atk, then Speed in that order —
+first stat where the partner’s stage is both higher than the user’s AND
+above default triggers <span class="sc-pos">+10</span> Score (25%)/<span class="sc-pos">+8</span> Score (75%) and returns immediately (does not
+stack across multiple qualifying stats)</li>
+<li>Instruct: <span class="sc-pos">+6</span> Score baseline; the
+repeated move (partner’s queued move if AI is slower, partner’s
+last-used move if faster) is non-status and hits multiple targets: <span class="sc-pos">+1</span> Score more (50% chance)</li>
+<li>Topsy Turvy: partner’s negative stat stages outnumber positive:
+<span class="sc-pos">+10</span> Score (25%)/<span class="sc-pos">+8</span> Score (75%)</li>
+<li>Acupressure, Speed Swap: <span class="sc-pos">+8</span> Score
+(25%)/<span class="sc-zero">+0</span> Score (75%) flat</li>
+<li>Skill Swap: partner has Truant and the trade isn’t bad for the AI:
+<span class="sc-pos">+10</span> Score; AI has Compound Eyes and partner
+has a benefiting low-accuracy move: <span class="sc-pos">+3</span> Score
+(marked as leftover/unrefined code in source)</li>
+<li>Worry Seed, Gastro Acid, Simple Beam: partner’s own ability is rated
+bad: <span class="sc-pos">+2</span> Score</li>
+<li>Entrainment: AI has Huge Power, partner has neither Huge Power nor
+Pure Power: <span class="sc-pos">+10</span> Score (25%)/<span class="sc-pos">+8</span> Score (75%)</li>
+<li>Soak: partner has Wonder Guard and ISN’T already pure Water-type
+(Soaking removes their weaknesses entirely): <span class="sc-pos">+1</span> Score</li>
+<li>After You: partner would currently act after either opponent
+(checked independently for each foe), UNLESS the partner’s queued move
+is Counter or Mirror Coat (those need to go last on purpose): <span class="sc-pos">+1</span> Score</li>
+<li>Heal Pulse / Hit-Enemy-Heal-Ally (Pollen Puff): AI is faster than
+BOTH opponents AND partner’s HP &lt; 50%: <span class="sc-pos">+6</span>
+Score flat (not chance-gated here)</li>
+<li>Helping Hand: partner’s queued move isn’t a status move: <span class="sc-pos">+7</span> Score (50%); (separately, <span class="sc-neg">-5</span> Score in the relative-state check if the
+partner has no damaging move to begin with)</li>
+<li>Dragon Cheer: blocked entirely if partner already has Focus Energy’s
+effect or has no damaging move; else <span class="sc-pos">+6</span>
+Score flat, <span class="sc-pos">+1</span> Score more if partner is
+Dragon-type</li>
+<li>Beat Up: see Doubles Combo Moves section — full condition list
+there</li>
+<li>EFFECT_HIT (a direct damaging hit on your own partner) — the
+Mummy-family ability-transfer combo: partner has Mummy/Wandering Spirit,
+AI has a bad ability (Emergency Exit/Truant/Defiant/Slow Start), the
+move is specifically a spread move hitting both foes and ally, and it
+won’t kill the partner: <span class="sc-pos">+9</span> Score (25%)/<span class="sc-pos">+7</span> Score (75%). Separately: partner holds Weakness
+Policy, the move is specifically Ice Shard or Fling, and it’s
+super-effective against the partner: <span class="sc-pos">+12</span>
+Score (25%)/<span class="sc-pos">+7</span> Score (75%). Neither
+condition: <span class="sc-neg">-30</span> Score.</li>
+<li>Fling (on a partner holding Salac Berry or similar): only reachable
+if the AI itself holds a Speed-Up-category item to Fling. Activates the
+partner’s Weakness Policy, or is super-effective against them: <span class="sc-pos">+12</span> Score (25%)/<span class="sc-pos">+8</span>
+Score (75%); else partner slower than any Player mon: <span class="sc-pos">+10</span> Score (25%)/<span class="sc-pos">+8</span>
+Score (75%); else <span class="sc-pos">+8</span> Score (25%)/<span class="sc-pos">+7</span> Score (75%). Otherwise: <span class="sc-neg">-30</span> Score.</li>
+<li>Swagger: partner’s Attack isn’t maxed, has a physical move, and
+either can’t be confused or holds a confusion/status cure: <span class="sc-pos">+9</span> Score (25%)/<span class="sc-pos">+8</span>
+Score (75%)</li>
+<li>Flatter: same as Swagger but for Sp. Atk / special moves</li>
+</ul>
+<h3 id="ally-switch">Ally Switch</h3>
+<ul>
+<li>Doubles only, considered 20% of the time, only if Player would kill
+the AI’s partner</li>
+<li>Resulting position is slower: <span class="sc-pos">+2</span> Score;
+faster: <span class="sc-pos">+1</span> Score</li>
+</ul>
+<p>Partner ability checks against the OPPONENT (handled in
+AI_CheckBadMove, not here): Lightning Rod/Storm Drain-style redirection
+and Flash Fire-style absorption on the opponent’s side are blocked
+outright as targets rather than scored — covered in the Ability, Field
+&amp; Weather Immunity Layer section above.</p>
+<h2 id="doubles-support-amp-combo-moves">DOUBLES: SUPPORT &amp; COMBO
+MOVES</h2>
+<h3 id="beat-up-double-battle-only">Beat Up (Double Battle only)</h3>
+<p><span class="sc-pos">+9</span> Score (75%), <span class="sc-pos">+12</span> Score (25%) if: partner has
+Justified/Scraftinite; partner has physical moves and hasn’t raised
+Attack; Beat Up can’t faint the partner; it’s the partner’s first turn
+out.</p>
+<h3 id="spread-moves-overriding-a-bad-partner-ability-brutal-swing-type">Spread
+moves overriding a bad partner ability (Brutal Swing-type)</h3>
+<p>Negative abilities: Emergency Exit, Truant, Defeatist, Slow Start. If
+partner is Mummy/Wandering Spirit/Lingering Aroma and the move can’t
+faint the partner: <span class="sc-pos">+9</span> Score (25%)/<span class="sc-pos">+7</span> Score (75%)</p>
+<h3 id="round">Round</h3>
+<p>The game mechanic first: Round gets a power boost and acts
+immediately after the first user, regardless of normal Speed order, if a
+second Pokémon also uses Round the same turn. Two AI Pokémon chaining
+Round together is a deliberate, coded combo — not emergent behavior.</p>
+<p>The exact code, quoted directly (two separate blocks in
+AI_DoubleBattle):</p>
+<p>Block 1 — checking what the partner already chose (runs for every
+move, not just Round):</p>
+<ul>
+<li>If partner’s already-chosen move is Round, AND this AI is SLOWER
+than that partner, AND this AI’s own move under consideration is also
+Round: <span class="sc-pos">+13</span> Score flat.</li>
+</ul>
+<p>Block 2 — checking this AI’s own move choice, independent of what the
+partner already picked:</p>
+<ul>
+<li>90% chance of the whole block applying at all (10% it’s skipped
+outright).</li>
+<li>Within that 90%: if this AI is FASTER than its partner, and the
+partner has Round in its moveset at all (whether or not it’s chosen
+anything yet): <span class="sc-pos">+7</span> Score to this AI’s own
+Round, AND the code force-writes +13 directly into the partner’s own
+stored Round score — bypassing the partner’s normal scoring process
+entirely for that one entry. The source’s own comment: “This ugly way is
+the only way to do it,” with a hardcoded assumption that Round always
+sits in moveset slot 0.</li>
+</ul>
+<p>Engine order, per the source comment: Slot 1 always finishes its full
+move calculation first, with zero knowledge of what Slot 2 will do. Slot
+2 calculates second, already knowing Slot 1’s pick.</p>
+<ul>
+<li><p>Worked example — the combo working as intended:</p></li>
+<li><p>Team is Torkoal in Slot 1 (slower, knows Round) and Dragapult in
+Slot 2 (faster, knows Round).</p></li>
+<li><ol type="1">
+<li>Torkoal (Slot 1) evaluates first, with no knowledge of what
+Dragapult will choose. Round happens to already be a strong pick for
+Torkoal on its own merits (say, its best damage option) — it locks in
+Round using its own normal scoring, independent of anything
+Round-specific.</li>
+</ol></li>
+<li><ol start="2" type="1">
+<li>Dragapult (Slot 2) evaluates second, now aware Torkoal already chose
+Round. Block 1 checks first: is Dragapult slower than Torkoal? No —
+Dragapult is faster, so this specific “join in because my partner
+already went” bonus does not apply to Dragapult.</li>
+</ol></li>
+<li><ol start="3" type="1">
+<li>Block 2 then runs for Dragapult: is Dragapult faster than Torkoal
+(yes) and does Torkoal know Round (yes)? On the 90% roll: Dragapult’s
+own Round gets <span class="sc-pos">+7</span> Score, encouraging
+Dragapult to also pick it.</li>
+</ol></li>
+<li><ol start="4" type="1">
+<li>Because the faster user (Dragapult) is the one sitting in Slot 2
+here, the source’s own comment confirms this is the case where the
+override “sticks.” Dragapult picks Round.</li>
+</ol></li>
+<li><p>Result: both Pokémon use Round. Since Dragapult is the second
+user to commit to it, it gets Round’s power boost and the turn-order
+jump per the actual game mechanic — the intended outcome.</p></li>
+<li><p>Worked example — the same team, swapped positions, silently
+failing:</p></li>
+<li><p>Same two Pokémon, but now Dragapult (faster) is in Slot 1 and
+Torkoal (slower) is in Slot 2.</p></li>
+<li><ol type="1">
+<li>Dragapult (Slot 1) evaluates first, with no knowledge of what
+Torkoal will do yet — Torkoal hasn’t been evaluated at all.</li>
+</ol></li>
+<li><ol start="2" type="1">
+<li>Block 2 runs for Dragapult: faster than Torkoal (yes), Torkoal knows
+Round (yes) — 90% roll gives Dragapult <span class="sc-pos">+7</span>
+Score on its own Round, and attempts to force-write +13 into Torkoal’s
+stored Round score.</li>
+</ol></li>
+<li><ol start="3" type="1">
+<li>But Torkoal (Slot 2) hasn’t been evaluated yet at this point — it
+doesn’t calculate its own moves until after Dragapult’s entire
+turn-choice process finishes. When Torkoal’s own evaluation does run
+afterward, it computes its scores fresh, and that process doesn’t
+preserve or reference the earlier force-written +13 — Torkoal’s genuine
+calculation simply overwrites it.</li>
+</ol></li>
+<li><ol start="4" type="1">
+<li>So whether Torkoal ends up picking Round on this turn now depends
+entirely on Round’s own ordinary merit for Torkoal (is it Torkoal’s best
+move anyway?) — the +13 nudge never actually influenced anything.</li>
+</ol></li>
+<li><p>Result: Dragapult still picks Round on its own +7 bonus, but
+Torkoal may or may not follow — the combo isn’t reliably guaranteed the
+way it was in the first example, even though the code visibly tried to
+force it.</p></li>
+</ul>
+<p>Honest limit on this explanation: the exact mechanism for why the
+override does or doesn’t “stick” — i.e., whether anything later in the
+broader battle engine re-reads that force-written score after the fact —
+depends on code outside this file (this file only shows the write
+happening and the source’s own comment describing the outcome). The two
+worked examples above follow the rule exactly as the source comments
+state it; I can’t independently trace the deeper wiring beyond what
+those comments assert without the rest of the engine.</p>
+<h3 id="heal-pulse-floral-healing-pollen-puff">Heal Pulse, Floral
+Healing, Pollen Puff</h3>
+<p>Must target partner (blocked entirely otherwise, or hard 0 under Heal
+Block). Blocked at max HP; <span class="sc-neg">-5</span> Score if
+HP&gt;50% but not maxed. Doesn’t heal target unless it IS the
+partner.</p>
+<h3 id="helping-hand">Helping Hand</h3>
+<p>Partner’s move isn’t status: <span class="sc-pos">+7</span> Score
+(50%)</p>
+<h3 id="dragon-cheer">Dragon Cheer</h3>
+<p><span class="sc-pos">+6</span> Score flat; partner is Dragon-type:
+<span class="sc-pos">+1</span> Score more</p>
+<h3 id="coaching">Coaching</h3>
+<ul>
+<li>Requires Doubles, living partner, partner not Contrary, not
+switching, has a physical move, else -20.</li>
+<li>50% gate to consider it, then <span class="sc-pos">+1</span> (50%);
+Attack&lt;+2 stages <span class="sc-pos">+1</span> (50%); Defense&lt;+2
+stages <span class="sc-pos">+1</span> (50%)</li>
+</ul>
+<p>Role Play, Entrainment — see Ability-Manipulation Moves section.</p>
+<h3 id="teatime">Teatime</h3>
+<p>Must target partner or -20. <span class="sc-neg">-1</span> Score
+(50%) baseline; pinch berry held +8; else any berry held +6.</p>
+<h3 id="instruct">Instruct</h3>
+<ul>
+<li>Blocked: no valid last-used move to repeat, that move is
+instruct-banned/needs recharge/calls another move/is a Z-move/is
+multi-turn-locked, or partner-duplicated. Doubles: must target
+partner.</li>
+<li><span class="sc-pos">+6</span> Score baseline; repeated move is
+non-status and spread: <span class="sc-pos">+1</span> Score (50%)</li>
+</ul>
+<p>Acupressure, Speed Swap — see their own sections above (Setup Moves /
+Stat-Copy).</p>
+<p>Ally Switch — see Doubles-Specific General Rules.</p>
+<h3 id="follow-me-rage-powder-dragon-cheer-redirection-gate">Follow Me,
+Rage Powder, Dragon Cheer (redirection gate)</h3>
+<ul>
+<li>Blocked unless: Doubles, partner alive, partner not duplicating,
+partner’s move isn’t status, partner isn’t switching out.</li>
+<li>Follow Me viability: Player would kill the AI’s partner: <span class="sc-pos">+1</span> Score (50%)</li>
+</ul>
+<p>Skill Swap — see Ability-Manipulation Moves section.</p>
+<h2 id="post-ko-switch-ai-scores">POST-KO SWITCH AI SCORES</h2>
+<p>(Confirmed to live in a separate file, not in this source — figures
+below are from the hand-written companion doc, cross-checked as
+consistent with everything else verified here.)</p>
+<p>Calculated per available party member against the Player’s active
+Pokémon; highest score sent out, ties to party order. Doubles slots
+evaluated independently.</p>
+<ul>
+<li><p><span class="sc-pos">+5</span>: AI’s mon faster and
+OHKOs</p></li>
+<li><p><span class="sc-pos">+4</span>: AI’s mon slower and OHKOs (or
+Palafin-Zero)</p></li>
+<li><p><span class="sc-pos">+3</span>: AI’s mon faster, KOs in ≤ some
+hit threshold (or Imposter Ditto)</p></li>
+<li><p><span class="sc-pos">+2</span>: AI’s mon slower, KOs in &lt; some
+hit threshold (or Wynaut/Wobbuffet)</p></li>
+<li><p><span class="sc-pos">+1</span>: AI’s mon simply faster</p></li>
+<li><p><span class="sc-zero">0</span>: Default</p></li>
+<li><p><span class="sc-neg">-1</span>: AI’s mon slower and would be
+OHKO’d (this specific check is skipped for Imposter Ditto
+candidates)</p></li>
+<li><p>Support bonus: <span class="sc-pos">+2</span> Score, 10% of the
+time, if not already at -1. This is the ONLY place in Post-KO scoring
+where a Pokémon’s move-set-derived classification (rather than its raw
+stats/matchup) changes the number — every other line in this table is
+pure stat/type math, which makes this one exception worth noticing. It’s
+also deliberately small and low-probability (a 10%-of-the-time +2, not a
+flat guarantee) — consistent with it being a minor tiebreak-style nudge
+rather than the AI strongly preferring to send Support Pokémon out after
+a KO.</p></li>
+<li><p>Switch-in chip damage: -1 if slower and 2HKO’d on entry; -2 if
+OHKO’d on entry.</p></li>
+</ul>
+<h2 id="mid-turn-switch-ai">MID-TURN SWITCH AI</h2>
+<p>(Same sourcing note as above.)</p>
+<ul>
+<li>Default: only switches with a non-negative candidate, except
+Anti-Setup AI Plus.</li>
+<li>Avoid Switch (blocks Walled/Support/Weather/Anti-Stall/Regenerator
+AI specifically) is active if: AI has boosted stats, AI can KO a Player
+mon, or Player has Pursuit/a phazing move/an OHKO move.</li>
+</ul>
+<p>The Support AI trigger itself, in full: AI is classified Support, has
+been in for more than 1 turn, and Avoid Switch fails → 20% chance to
+switch out. Worth noting what this trigger does NOT require: it’s not
+conditioned on the Support Pokémon’s own HP, on whether it’s actually
+accomplished anything yet (set a hazard, applied a status), or on the
+board state beyond the shared Avoid Switch gate. It’s a flat,
+turn-count-gated chance — the AI doesn’t distinguish between a Support
+mon that just came in and one that’s already done its job. Note also
+this trigger has no Singles-only restriction the way Walled AI does —
+it’s confirmed to apply in Doubles too, based on the source’s own
+wording (only Walled AI is explicitly marked Singles-only).</p>
+<p>Priority order: Perish Song (guaranteed) → Palafin (guaranteed if
+slower &amp; about to be OHKO’d) → Anti-Setup AI (40%, random tiebreak)
+→ Anti-Setup AI Plus (40%, random tiebreak, can go negative) → Walled AI
+(Singles only, 20%) → Support AI (20%) → Weather AI (20%) → Anti-Stall
+AI (20%) → Regenerator AI (40%) → Immunity AI (75%, bypasses Avoid
+Switch, matches Player’s last move type to an advantageous immunity
+ability).</p>
+<ul>
+<li>Confirmed factored in: hazards, Tailwind, Trick Room, Wonder Room,
+Magic Room, Mud Sport, Water Sport, 0-PP moves (all except Sticky
+Web).</li>
+<li>Not factored in: consumable items not yet on the field (Electric
+Seed, Booster Energy) — so Acrobatics/Unburden interactions aren’t
+predicted for switch-ins.</li>
+</ul>
+<h2 id="turn-order-amp-misc-scoring-passes">TURN-ORDER &amp; MISC SCORING
+PASSES</h2>
+<h3 id="setup-first-turn-bonus">Setup-First-Turn bonus</h3>
+<p>Turn 1 only, AI won’t die first: <span class="sc-pos">+2</span> Score
+for the full setup-move list (every stat move, Conversion, Light Screen,
+Focus Energy, Confuse, Substitute, Leech Seed, Minimize, Curse,
+Swagger/Flatter, Will-O-Wisp, Ingrain, Imprison, Tickle, Cosmic Power,
+Bulk Up, Calm Mind, Acupressure, Autotomize, Shift Gear, Shell Smash,
+Growth, Quiver Dance, Work Up, Hone Claws, all terrain/weather moves,
+Stealth Rock, Toxic Spikes, Trick Room, Wonder Room, Magic Room,
+Tailwind, Dragon Dance, Sticky Web, Geomancy, Victory Dance, generic
+hazards). AI would die first: -20 override instead.</p>
+<h3 id="risky-move-bonus">Risky-move bonus</h3>
+<p>High-crit-ratio move: <span class="sc-pos">+2</span> Score flat. 50%
+coin flip, then <span class="sc-pos">+2</span> Score more for: Sleep,
+Explosion, Mirror Move, OHKO, Confuse, Metronome, Psywave, Counter,
+Destiny Bond, Swagger, Attract, Present, all-stats-up-on-hit, Belly
+Drum, Mirror Coat, Focus Punch, Revenge.</p>
+<h3 id="prefer-strongest-move">Prefer-Strongest-Move</h3>
+<p>Whichever move deals the most raw damage: <span class="sc-pos">+6</span> Score (75%)/<span class="sc-pos">+8</span>
+Score (25%).</p>
+<ul>
+<li>Prefer-Baton-Pass (as its own scoring pass, layered on top of Baton
+Pass’s own viability entry above)</li>
+<li>Turn 0, stat-raising: <span class="sc-pos">+5</span> Score. Later
+turns, HP≥60%: <span class="sc-pos">+1</span> Score. HP&lt;60%: <span class="sc-neg">-10</span> Score. Ingrain/Aqua Ring not yet active: <span class="sc-pos">+2</span> Score. Baton Pass itself sums all current
+positive stages, +2 if rooted/aqua-ringed, -3 if Leech Seeded.</li>
+</ul>
+<h3 id="hp-aware-adjustments">HP-Aware adjustments</h3>
+<ul>
+<li>Own HP high (&gt;70%): <span class="sc-neg">-2</span> Score for
+Explosion, recovery moves, Rest, Destiny Bond, Flail, Endure, Memento,
+Grudge.</li>
+<li>Own HP medium (30-70%): -2 for any stat move; -2 for Explosion,
+Bide, Conversion, Light Screen, Mist, Focus Energy, Conversion 2,
+Safeguard, Belly Drum.</li>
+<li>Own HP low (&lt;30%): -2 for any stat move; -2 for Bide, Conversion,
+Reflect, Light Screen, Aurora Veil, Mist, Focus Energy, Rage, Conversion
+2, Lock-On, Safeguard, Belly Drum, Psych Up, Mirror Coat, Solar Beam,
+Two-Turn attacks, Eruption, Tickle, weather moves.</li>
+<li>Can outright KO this turn: <span class="sc-pos">+2</span> Score
+(stacks with the kill-bonus functions elsewhere — the kill signal gets
+reinforced across three separate functions, not just one).</li>
+<li>Target HP medium, move is a stat-changer: <span class="sc-neg">-2</span> Score. Target HP low, move is status: <span class="sc-neg">-2</span> Score.</li>
+<li>Targeting own partner with a healing-type effect while partner ≤50%
+HP: <span class="sc-pos">+1</span> Score.</li>
+</ul>
+<h2 id="special-context-ai-roaming-safari-first-battle">SPECIAL-CONTEXT
+AI (Roaming, Safari, First Battle)</h2>
+<p>These replace all other scoring entirely when active — a Pokémon in
+one of these states doesn’t run the normal move-selection chain the same
+way.</p>
+<p>Roaming Pokémon: if not currently trapped, ALWAYS flees — 100%, not
+chance-based. If trapped, behaves normally instead.</p>
+<p>Safari Zone: flee chance is calculated as (an internal escape factor)
+× 5, giving a 0-20% range. Rolls below that flee; otherwise the Pokémon
+just watches (does nothing offensive that turn) rather than
+attacking.</p>
+<p>First Battle (tutorial-style trainers): flees if the target’s HP is
+at or below 20%. This is a genuine flee trigger, not just
+move-avoidance.</p>
+<p>Corrections to AI_SetupFirstTurn and AI_PreferBatonPass, now
+confirmed against the complete file:</p>
+<ul>
+<li>AI_SetupFirstTurn’s death-avoidance check (-20 if slower, no
+priority, and about to be KO’d) is gated behind a specific flag
+(AI_FLAG_SMART_SWITCHING) — it does not apply universally to every
+trainer, only ones with that flag enabled.</li>
+<li>AI_PreferBatonPass has a Protect-specific case not documented
+before: <span class="sc-pos">+2</span> Score normally, but <span class="sc-neg">-2</span> Score if the AI’s own last move was Protect or
+Detect (discourages passing right after already stalling a turn).</li>
+</ul>
+<p>Corrections to AI_HPAware, now confirmed against the complete
+file:</p>
+<ul>
+<li>When targeting your own partner specifically with Heal Pulse/Pollen
+Puff-style moves, OR any move whose type matches a partner ability that
+would heal them (Volt Absorb+Electric, Earth Eater+Ground, Water
+Absorb/Dry Skin+Water — note this specific list does NOT include
+Lightning Rod/Storm Drain/Sap Sipper/Motor Drive/Flash Fire/Contrary,
+which are handled by the separate Doubles-General ability-redirect check
+instead): Heal Block on the partner returns a hard 0; either opponent
+being able to KO the partner this turn: <span class="sc-neg">-1</span>
+Score (don’t bother healing a doomed ally); partner HP ≤50%: <span class="sc-pos">+1</span> Score. This is a distinct, narrower check from
+the general partner-ability-redirect scoring covered in the
+Doubles-Specific General Rules section — the two can both apply to the
+same move in different ways.</li>
+<li>The full Target-HP-medium discouraged-move list is longer than
+previously listed: every single stat-changing effect (all
+Up/Up-2/Down/Down-2 variants for every stat), Mist, Focus Energy,
+Poison, Pain Split, Perish Song, Safeguard, Tickle, Cosmic Power, Bulk
+Up, Calm Mind, Dragon Dance, and the tier-3 stat boosts (Defense Up 3,
+Special Attack Up 3) all take <span class="sc-neg">-2</span> Score when
+the target is at medium HP and can’t be KO’d this turn.</li>
+</ul>
+<h2 id="known-inactive--dead-code">KNOWN INACTIVE / DEAD CODE</h2>
+<p>Worth knowing these exist in the file but don’t currently affect
+behavior:</p>
+<ul>
+<li>Solar Beam’s entire dedicated scoring block is commented out.</li>
+<li>OHKO moves have an unreachable +6 bonus sitting after a
+<code>break</code> statement — can never fire.</li>
+<li>Fling’s status-effect-specific scoring (burn/paralysis/poison/freeze
+based on the flung item) is fully commented out as a TODO.</li>
+<li>A doubles-ally “ShouldProtect” auto-protection block for basic-tier
+AI is commented out inside the Protect logic.</li>
+</ul>
+<h2 id="still-open">STILL OPEN</h2>
+<p>This file (battle_ai_main.c, 5,719 lines) has now been read in full —
+every function, top to bottom, including AI_DoubleBattle, the
+flag-assignment logic, both move-selection functions, and the
+Roaming/Safari/First-Battle tail. What remains open is genuinely outside
+this file, not unread portions of it:</p>
+<ul>
+<li>The exact hit-count thresholds for Post-KO switch’s “+3/+2” tiers
+(“KOs in ≤ hits” / “KOs in &lt; hits”) aren’t in this file — switch-in
+AI lives elsewhere entirely (confirmed: only bookkeeping functions for
+switch-in/faint data tracking exist here, not the scoring logic
+itself).</li>
+<li>Per-trainer which of the 9 scoring functions are actually enabled —
+the mechanism (gTrainers[…].aiFlags) is confirmed and documented above,
+but the actual per-trainer values live in trainer data tables, not this
+file.</li>
+<li>A number of helper functions are referenced constantly but defined
+elsewhere: ShouldLower[Stat], ShouldSetupOffensive/Defensive/Others,
+ShouldRecover’s exact internals, ShouldTailwind (oddly also used inside
+Trick Room’s logic), GetAbilityRating’s full table, ShouldReflectType,
+ShouldTrap, ShouldImprison, ShouldUseWishAromatherapy,
+IsRecycleEncouragedItem, and the various banned-move/banned-ability
+lists (IsRolePlayDoodleBannedAbility, IsSkillSwapBannedAbility,
+IsWorrySeedBannedAbility, etc.). All are described here only by what
+their calling code reveals about their behavior, never their internal
+thresholds.</li>
+<li>Send any of those helper-function files and the same rigorous
+treatment can be applied to them.</li>
+</ul>
+    </div>
+  </div>
+</div>
+
+<button class="btn" id="totop" type="button" title="Back to top" aria-label="Back to top"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button>
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function(){
+  var doc = document.documentElement;
+  var content = document.getElementById('content');
+  var toc = document.getElementById('toc');
+  var search = document.getElementById('search');
+  var crumb = document.getElementById('crumb');
+  var toast = document.getElementById('toast');
+  var heads = Array.prototype.slice.call(content.querySelectorAll('h2, h3'));
+
+  /* ---------- theme ---------- */
+  document.getElementById('theme-btn').addEventListener('click', function(){
+    doc.setAttribute('data-theme', doc.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+  });
+
+  /* ---------- toast ---------- */
+  var toastTimer;
+  function say(msg){
+    toast.textContent = msg; toast.classList.add('show');
+    clearTimeout(toastTimer); toastTimer = setTimeout(function(){ toast.classList.remove('show'); }, 1700);
+  }
+
+  /* ---------- build TOC + anchor buttons ---------- */
+  var LINK_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg>';
+  var links = [];
+  heads.forEach(function(h){
+    if(!h.id) return;
+    var label = h.textContent.replace(/\s+/g,' ').trim();
+    h.setAttribute('data-label', label);
+
+    var a = document.createElement('a');
+    a.href = '#' + h.id;
+    a.className = h.tagName === 'H2' ? 'major' : 'minor';
+    a.textContent = label;
+    a.setAttribute('data-search', label.toLowerCase());
+    a.setAttribute('data-id', h.id);
+    toc.appendChild(a);
+    links.push(a);
+
+    var btn = document.createElement('button');
+    btn.className = 'anchor';
+    btn.type = 'button';
+    btn.title = 'Copy link to this section';
+    btn.setAttribute('aria-label', 'Copy link to ' + label);
+    btn.innerHTML = LINK_SVG;
+    btn.addEventListener('click', function(e){
+      e.preventDefault(); e.stopPropagation();
+      var url = location.href.split('#')[0] + '#' + h.id;
+      history.replaceState(null, '', '#' + h.id);
+      function fallback(){
+        var t = document.createElement('textarea');
+        t.value = url; t.style.position = 'fixed'; t.style.opacity = '0';
+        document.body.appendChild(t); t.select();
+        try { document.execCommand('copy'); say('Link copied'); }
+        catch(err){ say('Copy failed — use the address bar'); }
+        document.body.removeChild(t);
+      }
+      if(navigator.clipboard && navigator.clipboard.writeText){
+        navigator.clipboard.writeText(url).then(function(){ say('Link copied'); }, fallback);
+      } else { fallback(); }
+    });
+    h.appendChild(btn);
+  });
+
+  var noRes = document.createElement('div');
+  noRes.className = 'no-results';
+  noRes.textContent = 'No sections match that.';
+  toc.appendChild(noRes);
+
+  document.getElementById('n-major').textContent = content.querySelectorAll('h2').length;
+  document.getElementById('n-minor').textContent = content.querySelectorAll('h3').length;
+  document.getElementById('c-total').textContent = links.length + ' sections';
+
+  /* ---------- search ---------- */
+  function esc(s){ return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+  function runSearch(){
+    var q = search.value.trim().toLowerCase();
+    var shown = 0;
+    if(!q){
+      links.forEach(function(a){
+        a.style.display = '';
+        a.textContent = a.getAttribute('data-label-text');
+      });
+      noRes.style.display = 'none';
+      document.getElementById('c-total').textContent = links.length + ' sections';
+      return;
+    }
+    var re = new RegExp('(' + esc(q) + ')', 'ig');
+    links.forEach(function(a){
+      var label = a.getAttribute('data-label-text');
+      if(a.getAttribute('data-search').indexOf(q) !== -1){
+        a.style.display = '';
+        a.innerHTML = label.replace(re, '<mark>$1</mark>');
+        shown++;
+      } else {
+        a.style.display = 'none';
+      }
+    });
+    noRes.style.display = shown ? 'none' : 'block';
+    document.getElementById('c-total').textContent = shown + ' of ' + links.length;
+  }
+  links.forEach(function(a){ a.setAttribute('data-label-text', a.textContent); });
+  search.addEventListener('input', runSearch);
+  search.addEventListener('keydown', function(e){
+    if(e.key === 'Escape'){ search.value = ''; runSearch(); search.blur(); }
+    if(e.key === 'Enter'){
+      var first = links.filter(function(a){ return a.style.display !== 'none'; })[0];
+      if(first){ first.click(); search.blur(); }
+    }
+  });
+  document.addEventListener('keydown', function(e){
+    if(e.key === '/' && document.activeElement !== search){ e.preventDefault(); search.focus(); search.select(); }
+  });
+
+  /* ---------- scroll-spy ---------- */
+  var byId = {}; links.forEach(function(a){ byId[a.getAttribute('data-id')] = a; });
+  var current = null;
+  function setActive(id){
+    if(id === current) return;
+    current = id;
+    links.forEach(function(a){ a.classList.remove('active'); });
+    var a = byId[id];
+    if(!a) return;
+    a.classList.add('active');
+    if(!search.value){
+      var r = a.getBoundingClientRect(), t = toc.getBoundingClientRect();
+      if(r.top < t.top + 40 || r.bottom > t.bottom - 40){
+        toc.scrollTop += r.top - t.top - t.height / 2;
+      }
+    }
+    var h = document.getElementById(id);
+    if(h){
+      if(h.tagName === 'H3'){
+        var sec = h; while(sec && sec.tagName !== 'H2'){ sec = sec.previousElementSibling; }
+        crumb.innerHTML = sec ? '<b>' + sec.getAttribute('data-label') + '</b> / ' + h.getAttribute('data-label')
+                              : '<b>' + h.getAttribute('data-label') + '</b>';
+      } else {
+        crumb.innerHTML = '<b>' + h.getAttribute('data-label') + '</b>';
+      }
+    }
+  }
+  function onScroll(){
+    var best = null, y = 96;
+    for(var i = 0; i < heads.length; i++){
+      var top = heads[i].getBoundingClientRect().top;
+      if(top <= y) best = heads[i]; else break;
+    }
+    setActive(best ? best.id : null);
+    if(!best) crumb.innerHTML = '<b>Overview</b>';
+
+    var max = document.documentElement.scrollHeight - window.innerHeight;
+    var pct = max > 0 ? (window.scrollY / max) * 100 : 0;
+    document.getElementById('progress').style.width = pct + '%';
+    document.getElementById('totop').classList.toggle('show', window.scrollY > 700);
+  }
+  var ticking = false;
+  window.addEventListener('scroll', function(){
+    if(!ticking){ ticking = true; requestAnimationFrame(function(){ onScroll(); ticking = false; }); }
+  }, {passive:true});
+
+  /* ---------- mobile drawer ---------- */
+  var sidebar = document.getElementById('sidebar'), scrim = document.getElementById('scrim');
+  function closeNav(){ sidebar.classList.remove('open'); scrim.classList.remove('show'); }
+  document.getElementById('menu-btn').addEventListener('click', function(){
+    sidebar.classList.toggle('open'); scrim.classList.toggle('show');
+  });
+  scrim.addEventListener('click', closeNav);
+  toc.addEventListener('click', function(e){ if(e.target.tagName === 'A' && window.innerWidth <= 960) closeNav(); });
+
+  document.getElementById('totop').addEventListener('click', function(){
+    window.scrollTo({top:0, behavior:'smooth'});
+  });
+
+  onScroll();
+  if(location.hash){
+    var target = document.getElementById(location.hash.slice(1));
+    if(target) setTimeout(function(){ target.scrollIntoView(); }, 60);
+  }
+})();
+
+</script>
+</body>
+</html>
