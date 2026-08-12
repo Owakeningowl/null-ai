@@ -2254,9 +2254,11 @@ treatment can be applied to them.</li>
     var TOOLS = [
       { id:'calc',   label:'Damage Calc', url:'https://nullcalc.pokemon0null.workers.dev/' },
       { id:'nulldex',label:'Nulldex',     url:'https://nulldex.pokemon0null.workers.dev/' },
-      // Google blocks framing of /edit; /preview is the embeddable read-only view.
+      // Use the real Sheets UI (rm=minimal strips Google's menus). /preview is a
+      // static render that drops cell notes — the red-triangle tooltips — so it
+      // is deliberately not used here.
       { id:'sheet',  label:'Trainer Battles',
-        url:'https://docs.google.com/spreadsheets/d/1mwHPt0AMzOJ_hfmDrVZpKP-Hf4eTT0ROhY8Wa7bY7r8/preview?gid=63284820#gid=63284820',
+        url:'https://docs.google.com/spreadsheets/d/1mwHPt0AMzOJ_hfmDrVZpKP-Hf4eTT0ROhY8Wa7bY7r8/edit?rm=minimal&gid=63284820#gid=63284820',
         openUrl:'https://docs.google.com/spreadsheets/d/1mwHPt0AMzOJ_hfmDrVZpKP-Hf4eTT0ROhY8Wa7bY7r8/edit?gid=63284820#gid=63284820' }
     ];
 
