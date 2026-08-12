@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="en" data-theme="astral">
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
@@ -14,29 +14,29 @@
   --sidebar:300px;
   --ease: cubic-bezier(.4,0,.2,1);
 }
-html[data-theme="dark"]{
-  --bg:#0d1117; --bg-2:#0f151d; --panel:#131a23; --panel-2:#182029;
-  --ink:#e4e9f0; --ink-2:#a7b2c1; --ink-3:#6e7c8f;
-  --border:#222c38; --border-2:#2c3846;
-  --accent:#ff6b5e; --accent-2:#ffa07a; --accent-soft:rgba(255,107,94,.13);
-  --pos-bg:rgba(46,196,120,.15); --pos-fg:#4ade8a; --pos-bd:rgba(46,196,120,.35);
-  --neg-bg:rgba(248,81,73,.15); --neg-fg:#ff8a80; --neg-bd:rgba(248,81,73,.35);
-  --zero-bg:rgba(139,155,175,.15); --zero-fg:#9aa8ba; --zero-bd:rgba(139,155,175,.3);
-  --code-bg:#1b2531; --code-fg:#c6d3e3;
-  --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px -8px rgba(0,0,0,.5);
-  --glow: radial-gradient(1200px 400px at 15% -10%, rgba(255,107,94,.10), transparent 70%);
+html[data-theme="astral"]{
+  --bg:#15181f; --bg-2:#171b23; --panel:#1c2028; --panel-2:#20242e;
+  --ink:#d1d5de; --ink-2:#a6aeba; --ink-3:#727b89;
+  --border:#272c38; --border-2:#333a48;
+  --accent:#ef7f72; --accent-2:#f0a191; --accent-soft:rgba(239,127,114,.12);
+  --pos-bg:rgba(46,196,120,.13); --pos-fg:#5cc98f; --pos-bd:rgba(46,196,120,.3);
+  --neg-bg:rgba(248,81,73,.13); --neg-fg:#f0908a; --neg-bd:rgba(248,81,73,.3);
+  --zero-bg:rgba(139,155,175,.13); --zero-fg:#98a1af; --zero-bd:rgba(139,155,175,.28);
+  --code-bg:#1e232c; --code-fg:#c3cad6;
+  --shadow: 0 1px 2px rgba(0,0,0,.35), 0 8px 24px -8px rgba(0,0,0,.45);
+  --glow: radial-gradient(1200px 400px at 15% -10%, rgba(239,127,114,.07), transparent 70%);
 }
-html[data-theme="light"]{
-  --bg:#fbfaf8; --bg-2:#f5f3ef; --panel:#ffffff; --panel-2:#f7f5f1;
-  --ink:#1a1f28; --ink-2:#525b6a; --ink-3:#8a94a3;
-  --border:#e6e2da; --border-2:#d6d1c7;
-  --accent:#c0392b; --accent-2:#d9694f; --accent-soft:rgba(192,57,43,.08);
-  --pos-bg:#e4f5e9; --pos-fg:#14713a; --pos-bd:#b9e3c7;
-  --neg-bg:#fdeae7; --neg-fg:#b3261e; --neg-bd:#f5c6bf;
-  --zero-bg:#eceff2; --zero-fg:#4d5865; --zero-bd:#dbe0e6;
-  --code-bg:#f1eee8; --code-fg:#3d4653;
-  --shadow: 0 1px 2px rgba(30,25,20,.05), 0 8px 24px -10px rgba(30,25,20,.12);
-  --glow: radial-gradient(1200px 400px at 15% -10%, rgba(192,57,43,.06), transparent 70%);
+html[data-theme="parchment"]{
+  --bg:#f6f1e6; --bg-2:#efe8d9; --panel:#fffdf7; --panel-2:#f3ecdd;
+  --ink:#2f2a22; --ink-2:#5c5346; --ink-3:#8b8071;
+  --border:#e2d9c6; --border-2:#cec3ab;
+  --accent:#a8471f; --accent-2:#c26a3e; --accent-soft:rgba(168,71,31,.09);
+  --pos-bg:#e6f2e4; --pos-fg:#2f6b35; --pos-bd:#c3ddbe;
+  --neg-bg:#f8e7e1; --neg-fg:#9c3720; --neg-bd:#e8c6b9;
+  --zero-bg:#eee8db; --zero-fg:#5a5245; --zero-bd:#dbd2bf;
+  --code-bg:#efe7d6; --code-fg:#443c30;
+  --shadow: 0 1px 2px rgba(70,55,30,.06), 0 8px 24px -10px rgba(70,55,30,.14);
+  --glow: radial-gradient(1200px 400px at 15% -10%, rgba(168,71,31,.05), transparent 70%);
 }
 *{box-sizing:border-box;}
 html{scroll-behavior:smooth;}
@@ -112,8 +112,13 @@ body{
 }
 .btn:hover{color:var(--accent);border-color:var(--accent);background:var(--accent-soft);}
 .btn svg{width:14px;height:14px;}
-html[data-theme="dark"] .ico-sun{display:block;} html[data-theme="dark"] .ico-moon{display:none;}
-html[data-theme="light"] .ico-sun{display:none;} html[data-theme="light"] .ico-moon{display:block;}
+/* the visible icon shows the CURRENT theme; clicking advances to the next.
+   These need the #theme-btn prefix to outrank the blanket hide below. */
+#theme-btn svg{display:none;}
+html[data-theme="astral"]    #theme-btn .ico-star{display:block;}
+html[data-theme="parchment"] #theme-btn .ico-sun{display:block;}
+
+
 
 /* ============ CONTENT ============ */
 #main{flex:1;min-width:0;display:flex;flex-direction:column;}
@@ -209,12 +214,73 @@ h2:hover .anchor, h3:hover .anchor, .anchor:focus{opacity:1;}
 #totop.show{opacity:1;pointer-events:auto;}
 #totop:hover{transform:translateY(-2px);}
 
+/* ============ READABILITY PASS ============ */
+
+/* Each move becomes a card so entries stop bleeding into each other */
+.entry{
+  border:1px solid var(--border);
+  border-radius:var(--r-md);
+  background:var(--panel);
+  padding:14px 18px 6px;
+  margin:0 0 10px;
+  transition:border-color .15s var(--ease), background .15s var(--ease);
+}
+.entry:hover{ border-color:var(--border-2); }
+.entry > h3{
+  margin:0 0 8px !important;
+  font-size:15px;
+  letter-spacing:-.1px;
+}
+.entry > ul{ margin:0 0 8px; padding-left:18px; }
+.entry > ul > li{ margin:0 0 6px; line-height:1.62; }
+
+/* "Blocked:" / "Viability:" run-in labels, so the eye can jump to the
+   right line instead of reading every bullet */
+.lbl{
+  font-family:var(--mono); font-size:10.5px; font-weight:700;
+  letter-spacing:.6px; text-transform:uppercase;
+  color:var(--accent); margin-right:5px;
+}
+.lbl-block{ color:var(--neg-fg); }
+.lbl-via{ color:var(--pos-fg); }
+
+/* Slightly calmer body text - the doc is read for long stretches */
+#content li, #content p{ line-height:1.68; }
+
+@media print{ .entry{ break-inside:avoid; } }
+
 /* ============ TOOLS OVERLAY ============ */
 #tools-btn{gap:6px;white-space:nowrap;}
 #tools-btn kbd{font-family:var(--mono);font-size:9.5px;line-height:1;padding:2px 4px;
   border:1px solid var(--border-2);border-radius:3px;color:var(--ink-3);background:var(--bg-2);}
 @media (max-width:900px){ #tools-btn kbd{display:none;} }
 @media (max-width:560px){ #tools-btn .tools-label{display:none;} }
+
+/* the "which tab?" picker that drops out of the Tools button */
+#tools-wrap{position:relative;}
+#tools-picker{
+  position:absolute; top:calc(100% + 8px); right:0; z-index:60;
+  min-width:210px; padding:5px; display:none;
+  background:var(--panel); border:1px solid var(--border-2);
+  border-radius:var(--r-md); box-shadow:var(--shadow);
+}
+#tools-picker.open{display:block;}
+#tools-picker .pick-head{
+  font-family:var(--mono); font-size:10px; letter-spacing:1px;
+  text-transform:uppercase; color:var(--ink-3); padding:6px 9px 7px;
+}
+.pick-opt{
+  display:flex; align-items:center; gap:9px; width:100%;
+  padding:8px 9px; border:0; border-radius:var(--r-sm);
+  background:transparent; color:var(--ink-2); cursor:pointer;
+  font-family:var(--sans); font-size:12.5px; text-align:left;
+}
+.pick-opt:hover{ background:var(--panel-2); color:var(--ink); }
+.pick-opt .pick-num{
+  font-family:var(--mono); font-size:9.5px; color:var(--ink-3);
+  border:1px solid var(--border-2); border-radius:3px; padding:2px 5px;
+}
+.pick-opt:hover .pick-num{ color:var(--accent); border-color:var(--accent); }
 
 #tools-overlay{
   position:fixed;inset:0;z-index:200;display:none;
@@ -277,6 +343,7 @@ body.tools-open{overflow:hidden;}
 }
 
 </style>
+<script>(function(){try{var t=localStorage.getItem("nullai-theme");if(t==="astral"||t==="parchment")document.documentElement.setAttribute("data-theme",t);}catch(e){}})();</script>
 </head>
 <body>
 <div id="progress"></div>
@@ -298,7 +365,7 @@ body.tools-open{overflow:hidden;}
     <div id="toc"></div>
     <div class="side-foot">
       <span class="count" id="c-total"></span>
-      <button class="btn" id="theme-btn" type="button" title="Toggle theme" aria-label="Toggle light and dark theme"><svg class="ico-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg><svg class="ico-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 13.2A9 9 0 1 1 10.8 3a7 7 0 0 0 10.2 10.2Z"/></svg></button>
+      <div id="theme-wrap"><button class="btn" id="theme-btn" type="button" title="Toggle theme" aria-label="Toggle light and dark theme"><svg class="ico-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg><svg class="ico-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 13.2A9 9 0 1 1 10.8 3a7 7 0 0 0 10.2 10.2Z"/></svg><svg class="ico-star" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l2.1 5.2L19.5 9l-4 3.6 1.1 5.4-4.6-2.7L7.4 18l1.1-5.4-4-3.6 5.4-.8z"/></svg></button></div>
     </div>
   </nav>
   <div id="scrim"></div>
@@ -307,10 +374,10 @@ body.tools-open{overflow:hidden;}
     <div id="topbar">
       <button class="btn" id="menu-btn" type="button" aria-label="Open contents"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg></button>
       <div class="crumb" id="crumb"><b>Overview</b></div>
-      <button class="btn" id="tools-btn" type="button" title="Open tools (C)" aria-label="Open tools">
+      <div id="tools-wrap"><button class="btn" id="tools-btn" type="button" title="Open tools (C)" aria-label="Open tools">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
         <span class="tools-label">Tools</span><kbd>C</kbd>
-      </button>
+      </button><div id="tools-picker" role="menu"></div></div>
     </div>
 
     <div id="content">
@@ -513,7 +580,7 @@ specifically, if the user is Ghost-type and the target has Magic Guard:
 <li>Powder moves against a target immune to powder: <span class="sc-neg">-10</span> Score.</li>
 <li>Semi-invulnerable target (Fly/Dig etc.) and the AI is faster: <span class="sc-neg">-20</span> Score (target will dodge anyway).</li>
 </ul>
-<h2 id="setup-moves">SETUP MOVES</h2>
+<h2 id="setup-moves">Setup Moves</h2>
 <p>Every stat-raising move shares this base pattern (unless noted
 otherwise): can’t-rise check (-20), “will I die before benefiting” check
 (-20, exempted by Sash/Sturdy/Mimikyu Disguise/Substitute), and “will
@@ -674,7 +741,7 @@ won’t actually benefit</li>
 <li>Same Plus/Minus mechanic as Gear Up, but for Defense/Sp. Defense;
 self penalties -20 each stat, partner-based -10/-8</li>
 </ul>
-<h2 id="status-inflicting-moves">STATUS-INFLICTING MOVES</h2>
+<h2 id="status-inflicting-moves">Status-Inflicting Moves</h2>
 <h3 id="sleep-sing-dark-void-yawn">Sleep (Sing, Dark Void, Yawn)</h3>
 <ul>
 <li>Fully blocked (-20) via AI_CanPutToSleep if the target can’t be put
@@ -746,7 +813,7 @@ confusion, or is trapped (attract “piles on”)</li>
 <li>Blocked if already yawned, or via the standard sleep-immunity
 check</li>
 </ul>
-<h2 id="stat-lowering-moves">STAT-LOWERING MOVES</h2>
+<h2 id="stat-lowering-moves">Stat-Lowering Moves</h2>
 <p>Every stat-down effect is individually blocked at -20 if the target’s
 stat is already at minimum, AND blocked by a specific per-stat ability
 list:</p>
@@ -788,7 +855,7 @@ independently, stacking -2 penalties if either isn’t worth it, <span class="sc
 <h3 id="captivate">Captivate</h3>
 <p>Requires opposite, known genders (not genderless, not matching):
 <span class="sc-neg">-10</span> Score if it wouldn’t work.</p>
-<h2 id="recovery-amp-drain">RECOVERY &amp; DRAIN</h2>
+<h2 id="recovery-amp-drain">Recovery &amp; Drain</h2>
 <p>Recovery Moves (Recover, Slack Off, Heal Order, Roost, Strength Sap,
 and the weather/HP-scaled ones)</p>
 <ul>
@@ -833,7 +900,7 @@ Drain, Draining Kiss, etc.)</h3>
 <li>AI at half HP or under, kills target in ≤4 hits: <span class="sc-pos">+6</span> Score</li>
 <li>AI holds Big Root: <span class="sc-pos">+1</span> Score</li>
 </ul>
-<h2 id="entry-hazards-amp-field">ENTRY HAZARDS &amp; FIELD</h2>
+<h2 id="entry-hazards-amp-field">Entry Hazards &amp; Field</h2>
 <p>Stealth Rock, Stone Axe, Spikes, Ceaseless Edge, Toxic Spikes, Sticky
 Web (generic hazard pattern)</p>
 <ul>
@@ -968,7 +1035,7 @@ move while asleep/frozen, blocked (-20, don’t set up a combo that’ll
 just fail)</li>
 <li>Viability: partner also knows a Pledge move: <span class="sc-pos">+3</span> Score</li>
 </ul>
-<h2 id="switching-amp-sacrifice-moves">SWITCHING &amp; SACRIFICE MOVES</h2>
+<h2 id="switching-amp-sacrifice-moves">Switching &amp; Sacrifice Moves</h2>
 <h3 id="u-turn-volt-switch-flip-turn-parting-shot-hit-escape-family">U-Turn,
 Volt Switch, Flip Turn, Parting Shot (Hit-Escape family)</h3>
 <ul>
@@ -1031,7 +1098,7 @@ can KO)</li>
 <li>Viability: <span class="sc-pos">+2</span> Score (50%) if a fainted
 mon genuinely exists</li>
 </ul>
-<h2 id="priority-amp-combo-moves">PRIORITY &amp; COMBO MOVES</h2>
+<h2 id="priority-amp-combo-moves">Priority &amp; Combo Moves</h2>
 <h3 id="fake-out">Fake Out</h3>
 <ul>
 <li>First Impression exempted from all of this (it’s the same effect ID
@@ -1089,7 +1156,7 @@ Attacks generally (Sky Attack, Freeze Shock, Ice Burn, etc.)</h3>
 <li><span class="sc-pos">+9</span> Score (80%) — this IS chance-gated,
 unlike Meteor Beam/Electro Shot above</li>
 </ul>
-<h2 id="protection-moves">PROTECTION MOVES</h2>
+<h2 id="protection-moves">Protection Moves</h2>
 <p>Protect, Detect, Spiky Shield, Silk Trap, Baneful Bunker, Obstruct,
 Burning Bulwark (standard Protect family)</p>
 <ul>
@@ -1132,7 +1199,7 @@ Speed Boost: <span class="sc-pos">+1</span> Score (+1 more with Baton
 Pass); else 50% chance -1</li>
 <li>Target can’t KO: 50% chance -1</li>
 </ul>
-<h2 id="trapping-amp-binding">TRAPPING &amp; BINDING</h2>
+<h2 id="trapping-amp-binding">Trapping &amp; Binding</h2>
 <h3 id="octolock-mean-look-anchor-shot-spirit-shackle-thousand-waves-jaw-lock-trap-family">Octolock,
 Mean Look, Anchor Shot, Spirit Shackle, Thousand Waves, Jaw Lock,
 Trap-family</h3>
@@ -1163,7 +1230,7 @@ beyond default</li>
 present <span class="sc-pos">+2</span> Score (50%) — note this is +2,
 not +1; baseline 50% chance of -1</li>
 </ul>
-<h2 id="special-damage-moves">SPECIAL DAMAGE MOVES</h2>
+<h2 id="special-damage-moves">Special Damage Moves</h2>
 <h3 id="ohko-moves-fissure-horn-drill-sheer-cold">OHKO Moves (Fissure,
 Horn Drill, Sheer Cold)</h3>
 <ul>
@@ -1233,7 +1300,7 @@ else -20</li>
 </ul>
 <p>Order Up — see Setup Moves section (Tatsugiri Commander
 mechanic).</p>
-<h2 id="utility-amp-misc-moves">UTILITY &amp; MISC MOVES</h2>
+<h2 id="utility-amp-misc-moves">Utility &amp; Misc Moves</h2>
 <h3 id="screens-light-screen-reflect-aurora-veil">Screens (Light Screen,
 Reflect, Aurora Veil)</h3>
 <ul>
@@ -1436,7 +1503,7 @@ changes are currently fewer than negative</li>
 <li>Viability: +1 if target has Fire move, followed by an unconditional
 -1 (net 0 or -1)</li>
 </ul>
-<h2 id="counter-attack-moves">COUNTER-ATTACK MOVES</h2>
+<h2 id="counter-attack-moves">Counter-Attack Moves</h2>
 <h3 id="counter">Counter</h3>
 <ul>
 <li>Blocked: target incapacitated/infatuated/confused, target has ONLY
@@ -1462,8 +1529,8 @@ more</li>
 <li>Target has a status move: <span class="sc-neg">-1</span> Score
 (50%)</li>
 </ul>
-<h2 id="stat-copy-amp-manipulation-moves">STAT-COPY &amp; MANIPULATION
-MOVES</h2>
+<h2 id="stat-copy-amp-manipulation-moves">Stat-Copy &amp; Manipulation
+Moves</h2>
 <h3 id="psych-up-spectral-thief">Psych Up, Spectral Thief</h3>
 <ul>
 <li>Spectral Thief additionally: <span class="sc-pos">+5</span> Score if
@@ -1527,7 +1594,7 @@ while lacking a physical move</li>
 Attack and a physical move exists (Power Trick would let a bulky mon
 attack with its real strength)</li>
 </ul>
-<h2 id="ability-manipulation-moves">ABILITY-MANIPULATION MOVES</h2>
+<h2 id="ability-manipulation-moves">Ability-Manipulation Moves</h2>
 <h3 id="role-play-doodle">Role Play, Doodle</h3>
 <ul>
 <li>Blocked: same ability already, target has no ability, attacker’s
@@ -1584,8 +1651,8 @@ or attacker’s own ability is already rated worthless</li>
 the same, not Gastro-Acid-suppressed): <span class="sc-pos">+1</span>
 Score</li>
 </ul>
-<h2 id="doubles-specific-general-rules">DOUBLES-SPECIFIC GENERAL
-RULES</h2>
+<h2 id="doubles-specific-general-rules">Doubles-Specific General
+Rules</h2>
 <p>The pipeline, precisely: for every potential target (both foes and
 the AI’s own partner), the AI runs the FULL scoring chain as if that
 were the only target, then picks whichever target’s best move scored
@@ -1692,8 +1759,8 @@ AI_CheckBadMove, not here): Lightning Rod/Storm Drain-style redirection
 and Flash Fire-style absorption on the opponent’s side are blocked
 outright as targets rather than scored — covered in the Ability, Field
 &amp; Weather Immunity Layer section above.</p>
-<h2 id="doubles-support-amp-combo-moves">DOUBLES: SUPPORT &amp; COMBO
-MOVES</h2>
+<h2 id="doubles-support-amp-combo-moves">Doubles: Support &amp; Combo
+Moves</h2>
 <h3 id="beat-up-double-battle-only">Beat Up (Double Battle only)</h3>
 <p><span class="sc-pos">+9</span> Score (75%), <span class="sc-pos">+12</span> Score (25%) if: partner has
 Justified/Scraftinite; partner has physical moves and hasn’t raised
@@ -1850,7 +1917,7 @@ partner’s move isn’t status, partner isn’t switching out.</li>
 <li>Follow Me viability: Player would kill the AI’s partner: <span class="sc-pos">+1</span> Score (50%)</li>
 </ul>
 <p>Skill Swap — see Ability-Manipulation Moves section.</p>
-<h2 id="post-ko-switch-ai-scores">POST-KO SWITCH AI SCORES</h2>
+<h2 id="post-ko-switch-ai-scores">Post-KO Switch AI Scores</h2>
 <p>(Confirmed to live in a separate file, not in this source — figures
 below are from the hand-written companion doc, cross-checked as
 consistent with everything else verified here.)</p>
@@ -1883,7 +1950,7 @@ a KO.</p></li>
 <li><p>Switch-in chip damage: -1 if slower and 2HKO’d on entry; -2 if
 OHKO’d on entry.</p></li>
 </ul>
-<h2 id="mid-turn-switch-ai">MID-TURN SWITCH AI</h2>
+<h2 id="mid-turn-switch-ai">Mid-Turn Switch AI</h2>
 <p>(Same sourcing note as above.)</p>
 <ul>
 <li>Default: only switches with a non-negative candidate, except
@@ -1918,8 +1985,8 @@ Web).</li>
 Seed, Booster Energy) — so Acrobatics/Unburden interactions aren’t
 predicted for switch-ins.</li>
 </ul>
-<h2 id="turn-order-amp-misc-scoring-passes">TURN-ORDER &amp; MISC SCORING
-PASSES</h2>
+<h2 id="turn-order-amp-misc-scoring-passes">Turn-Order &amp; Misc Scoring
+Passes</h2>
 <h3 id="setup-first-turn-bonus">Setup-First-Turn bonus</h3>
 <p>Turn 1 only, AI won’t die first: <span class="sc-pos">+2</span> Score
 for the full setup-move list (every stat move, Conversion, Light Screen,
@@ -2013,7 +2080,7 @@ Up, Calm Mind, Dragon Dance, and the tier-3 stat boosts (Defense Up 3,
 Special Attack Up 3) all take <span class="sc-neg">-2</span> Score when
 the target is at medium HP and can’t be KO’d this turn.</li>
 </ul>
-<h2 id="known-inactive--dead-code">KNOWN INACTIVE / DEAD CODE</h2>
+<h2 id="known-inactive--dead-code">Known Inactive / Dead Code</h2>
 <p>Worth knowing these exist in the file but don’t currently affect
 behavior:</p>
 <ul>
@@ -2025,7 +2092,7 @@ based on the flung item) is fully commented out as a TODO.</li>
 <li>A doubles-ally “ShouldProtect” auto-protection block for basic-tier
 AI is commented out inside the Protect logic.</li>
 </ul>
-<h2 id="still-open">STILL OPEN</h2>
+<h2 id="still-open">Still Open</h2>
 <p>This file (battle_ai_main.c, 5,719 lines) has now been read in full —
 every function, top to bottom, including AI_DoubleBattle, the
 flag-assignment logic, both move-selection functions, and the
@@ -2064,6 +2131,8 @@ treatment can be applied to them.</li>
 <div id="tools-overlay" role="dialog" aria-modal="true" aria-label="Tools">
   <div id="tools-bar">
     <div id="tools-tabs" role="tablist" aria-label="Tools"></div>
+    <button class="btn" id="tools-zoom" type="button" title="Zoom this panel (+ / - , or Z to cycle)">Zoom: 100%</button>
+    <button class="btn" id="tools-filter" type="button" title="Dim this panel to cut glare (F)">Screen: Normal</button>
     <a class="btn" id="tools-newtab" href="#" target="_blank" rel="noopener" title="Open the current tool in a new tab">New tab</a>
     <button class="btn" id="tools-close" type="button" title="Back to docs (Esc)" aria-label="Back to docs">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
@@ -2084,9 +2153,25 @@ treatment can be applied to them.</li>
   var heads = Array.prototype.slice.call(content.querySelectorAll('h2, h3'));
 
   /* ---------- theme ---------- */
-  document.getElementById('theme-btn').addEventListener('click', function(){
-    doc.setAttribute('data-theme', doc.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+  var THEMES = ['astral', 'parchment'];
+  var THEME_LABEL = { astral:'Astral', parchment:'Parchment' };
+  var themeBtn = document.getElementById('theme-btn');
+
+  function markTheme(){
+    var cur = doc.getAttribute('data-theme') || 'astral';
+    var other = cur === 'astral' ? 'parchment' : 'astral';
+    themeBtn.title = 'Theme: ' + THEME_LABEL[cur] + ' \u2014 click for ' + THEME_LABEL[other];
+    themeBtn.setAttribute('aria-label', themeBtn.title);
+  }
+  themeBtn.addEventListener('click', function(){
+    var cur = doc.getAttribute('data-theme') || 'astral';
+    var next = cur === 'astral' ? 'parchment' : 'astral';
+    doc.setAttribute('data-theme', next);
+    try { localStorage.setItem('nullai-theme', next); } catch(e){}
+    markTheme();
+    say('Theme: ' + THEME_LABEL[next]);
   });
+  markTheme();
 
   /* ---------- toast ---------- */
   var toastTimer;
@@ -2252,15 +2337,36 @@ treatment can be applied to them.</li>
      The site must allow embedding (no X-Frame-Options / CSP frame-ancestors). */
   (function(){
     var TOOLS = [
-      { id:'calc',   label:'Damage Calc', url:'https://nullcalc.pokemon0null.workers.dev/' },
-      { id:'nulldex',label:'Nulldex',     url:'https://nulldex.pokemon0null.workers.dev/' },
-      // Use the real Sheets UI (rm=minimal strips Google's menus). /preview is a
-      // static render that drops cell notes — the red-triangle tooltips — so it
-      // is deliberately not used here.
+      // Same-origin copy of the calculator, styled with the Astral theme.
+      // Its assets still load from the Worker; only the page itself is local,
+      // which is what lets our CSS apply at all.
+      { id:'calc',   label:'Damage Calc', url:'calc.html',
+        openUrl:'https://nullcalc.pokemon0null.workers.dev/' },
+      // Same-origin copy, with the top nav links hidden (theme picker kept).
+      { id:'nulldex',label:'Nulldex',     url:'dex.html',
+        openUrl:'https://nulldex.pokemon0null.workers.dev/' },
+      // The real Sheets UI (rm=minimal strips Google's menus). This is the only
+      // view that shows the red-triangle cell notes, which is why it is used
+      // here rather than /htmlview or /preview.
       { id:'sheet',  label:'Trainer Battles',
         url:'https://docs.google.com/spreadsheets/d/1mwHPt0AMzOJ_hfmDrVZpKP-Hf4eTT0ROhY8Wa7bY7r8/edit?rm=minimal&gid=63284820#gid=63284820',
         openUrl:'https://docs.google.com/spreadsheets/d/1mwHPt0AMzOJ_hfmDrVZpKP-Hf4eTT0ROhY8Wa7bY7r8/edit?gid=63284820#gid=63284820' }
     ];
+
+    /* Screen filters. A cross-origin iframe cannot be restyled from here,
+       but a CSS filter applies to the rendered frame itself, which works
+       on any embedded site. Per-tool, remembered, and purely local — it
+       changes nothing on the embedded page for anyone else. */
+    var FILTERS = [
+      { n:'Normal', v:'' },
+      { n:'Dim',    v:'brightness(.82) contrast(1.04)' }
+    ];
+
+    /* Per-panel zoom. Applied with CSS zoom on the iframe element, which
+       reflows the embedded page the way browser zoom does rather than just
+       scaling a bitmap. Stored per tool, so each tab keeps its own level. */
+    var ZOOMS = [75, 90, 100, 110, 125, 150];
+    var ZOOM_DEFAULT = 2;   // index of 100%
 
     var overlay  = document.getElementById('tools-overlay');
     var openBtn  = document.getElementById('tools-btn');
@@ -2268,7 +2374,9 @@ treatment can be applied to them.</li>
     var tabsEl   = document.getElementById('tools-tabs');
     var panesEl  = document.getElementById('tools-panes');
     var newTab   = document.getElementById('tools-newtab');
-    var current  = 0;
+    var filterBtn= document.getElementById('tools-filter');
+    var zoomBtn  = document.getElementById('tools-zoom');
+    var picker   = document.getElementById('tools-picker');
 
     try { var saved = localStorage.getItem('nullai-tool');
           if(saved !== null && TOOLS[+saved]) current = +saved; } catch(e){}
@@ -2318,10 +2426,59 @@ treatment can be applied to them.</li>
       });
       newTab.href = TOOLS[i].openUrl || TOOLS[i].url;
       try { localStorage.setItem('nullai-tool', String(i)); } catch(e){}
+      paintFilter();
+      paintZoom();
     }
 
-    function openTools(){
-      select(current);
+    function filterKey(i){ return 'nullai-filter-' + TOOLS[i].id; }
+
+    function paintFilter(){
+      var tool = TOOLS[current], idx = 0;
+      try { var v = localStorage.getItem(filterKey(current));
+            if(v !== null && FILTERS[+v]) idx = +v; } catch(e){}
+      tool.filterIdx = idx;
+      if(tool.paneEl){
+        var fr = tool.paneEl.querySelector('iframe');
+        if(fr) fr.style.filter = FILTERS[idx].v;
+      }
+      filterBtn.textContent = 'Screen: ' + FILTERS[idx].n;
+    }
+
+    function cycleFilter(){
+      var tool = TOOLS[current];
+      var idx = ((tool.filterIdx || 0) + 1) % FILTERS.length;
+      try { localStorage.setItem(filterKey(current), String(idx)); } catch(e){}
+      paintFilter();
+    }
+
+    function zoomKey(i){ return 'nullai-zoom-' + TOOLS[i].id; }
+
+    function paintZoom(){
+      var tool = TOOLS[current], idx = ZOOM_DEFAULT;
+      try { var v = localStorage.getItem(zoomKey(current));
+            if(v !== null && ZOOMS[+v]) idx = +v; } catch(e){}
+      tool.zoomIdx = idx;
+      if(tool.paneEl){
+        var fr = tool.paneEl.querySelector('iframe');
+        if(fr) fr.style.zoom = ZOOMS[idx] + '%';
+      }
+      zoomBtn.textContent = 'Zoom: ' + ZOOMS[idx] + '%';
+    }
+
+    function setZoom(idx){
+      idx = Math.max(0, Math.min(ZOOMS.length - 1, idx));
+      try { localStorage.setItem(zoomKey(current), String(idx)); } catch(e){}
+      paintZoom();
+    }
+    function stepZoom(dir){ setZoom((TOOLS[current].zoomIdx == null ? ZOOM_DEFAULT : TOOLS[current].zoomIdx) + dir); }
+    function cycleZoom(){
+      var idx = (TOOLS[current].zoomIdx == null ? ZOOM_DEFAULT : TOOLS[current].zoomIdx);
+      setZoom((idx + 1) % ZOOMS.length);
+    }
+
+    function openTools(idx){
+      closePicker();
+      select(typeof idx === 'number' ? idx : current);
       overlay.classList.add('open');
       document.body.classList.add('tools-open');
       closeBtn.focus();
@@ -2333,24 +2490,102 @@ treatment can be applied to them.</li>
     }
     function isOpen(){ return overlay.classList.contains('open'); }
 
-    openBtn.addEventListener('click', openTools);
+    // Build the "which tab?" menu once.
+    picker.innerHTML = '<div class="pick-head">Open which tab?</div>';
+    TOOLS.forEach(function(tool, i){
+      var b = document.createElement('button');
+      b.type = 'button'; b.className = 'pick-opt'; b.setAttribute('role','menuitem');
+      b.innerHTML = '<span class="pick-num">' + (i+1) + '</span>' + tool.label;
+      b.addEventListener('click', function(e){ e.stopPropagation(); openTools(i); });
+      picker.appendChild(b);
+    });
+
+    function openPicker(){ picker.classList.add('open'); }
+    function closePicker(){ picker.classList.remove('open'); }
+    function pickerOpen(){ return picker.classList.contains('open'); }
+
+    openBtn.addEventListener('click', function(e){
+      e.stopPropagation();
+      pickerOpen() ? closePicker() : openPicker();
+    });
+    document.addEventListener('click', function(e){
+      if(!picker.contains(e.target) && e.target !== openBtn) closePicker();
+    });
     closeBtn.addEventListener('click', closeTools);
+    filterBtn.addEventListener('click', cycleFilter);
+    zoomBtn.addEventListener('click', cycleZoom);
 
     document.addEventListener('keydown', function(e){
       if(e.metaKey || e.ctrlKey || e.altKey) return;           // leave copy etc. alone
       var t = e.target, tag = t && t.tagName;
       if(tag === 'INPUT' || tag === 'TEXTAREA' || (t && t.isContentEditable)) return;
 
-      if(e.key === 'Escape' && isOpen()){ closeTools(); return; }
+      if(e.key === 'Escape'){
+        if(isOpen()){ closeTools(); return; }
+        if(pickerOpen()){ closePicker(); return; }
+      }
 
-      if(isOpen() && e.key >= '1' && e.key <= String(Math.min(9, TOOLS.length))){
-        e.preventDefault(); select(+e.key - 1); return;
+      if(e.key >= '1' && e.key <= String(Math.min(9, TOOLS.length))){
+        if(isOpen()){ e.preventDefault(); select(+e.key - 1); return; }
+        if(pickerOpen()){ e.preventDefault(); openTools(+e.key - 1); return; }
+      }
+      if(isOpen() && (e.key === 'f' || e.key === 'F')){
+        e.preventDefault(); cycleFilter(); return;
+      }
+      if(isOpen() && (e.key === 'z' || e.key === 'Z')){
+        e.preventDefault(); cycleZoom(); return;
+      }
+      if(isOpen() && (e.key === '+' || e.key === '=')){
+        e.preventDefault(); stepZoom(1); return;
+      }
+      if(isOpen() && (e.key === '-' || e.key === '_')){
+        e.preventDefault(); stepZoom(-1); return;
       }
       if(e.key === 'c' || e.key === 'C'){
         e.preventDefault();
-        isOpen() ? closeTools() : openTools();
+        if(isOpen()) closeTools();
+        else pickerOpen() ? closePicker() : openPicker();
       }
     });
+  })();
+
+  /* ---------- readability pass ----------
+     Purely presentational: entries get grouped into cards, run-in labels
+     get styled, and a score filter is added. No text is rewritten - the
+     only DOM writes are wrapping existing nodes and splitting a leading
+     "Label:" out of a bullet into a <b>. */
+  (function(){
+    /* 1. group each h3 with the nodes that follow it, up to the next heading */
+    var kids = Array.prototype.slice.call(content.children);
+    kids.forEach(function(node){
+      if(node.tagName !== 'H3') return;
+      var box = document.createElement('div');
+      box.className = 'entry';
+      node.parentNode.insertBefore(box, node);
+      var n = node;
+      while(n && !/^H[12]$/.test(n.tagName)){
+        var next = n.nextElementSibling;
+        box.appendChild(n);
+        n = next;
+        if(n && n.tagName === 'H3') break;
+      }
+    });
+
+    /* 2. pull a leading "Blocked:" / "Viability:" out into a styled label */
+    var LABELS = /^(Blocked|Viability|Doubles|Blocked unless|Effect|Notes?|Score)\s*:/;
+    content.querySelectorAll('.entry li').forEach(function(li){
+      var first = li.firstChild;
+      if(!first || first.nodeType !== 3) return;
+      var m = first.nodeValue.match(LABELS);
+      if(!m) return;
+      var b = document.createElement('b');
+      b.className = 'lbl ' + (/^Blocked/.test(m[1]) ? 'lbl-block'
+                            : /^Viability/.test(m[1]) ? 'lbl-via' : '');
+      b.textContent = m[1];
+      first.nodeValue = first.nodeValue.slice(m[0].length);
+      li.insertBefore(b, first);
+    });
+
   })();
 
   onScroll();
