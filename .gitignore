@@ -1,0 +1,6 @@
+# Personal save data - do not publish
+_test.sav
+*.sav
+
+# Local backups
+*.bak
