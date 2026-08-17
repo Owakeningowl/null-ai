@@ -2524,9 +2524,16 @@ treatment can be applied to them.</li>
     filterBtn.addEventListener('click', cycleFilter);
     zoomBtn.addEventListener('click', cycleZoom);
 
-    /* Restore the overlay if it was open when the page was last left. */
+    /* Restore the overlay only on an actual reload — the point is "refresh
+       keeps my place". Auto-opening on every fresh visit made the doc load
+       the whole damage calculator (30+ cross-origin scripts) before the
+       reader had asked for it. */
     try {
-      if(localStorage.getItem('nullai-tools-open') === '1') openTools(current, true);
+      var nav = performance.getEntriesByType('navigation')[0];
+      var reloaded = nav ? (nav.type === 'reload' || nav.type === 'back_forward')
+                         : (performance.navigation && performance.navigation.type === 1);
+      if(reloaded && localStorage.getItem('nullai-tools-open') === '1')
+        openTools(current, true);
     } catch(e){}
 
     document.addEventListener('keydown', function(e){
